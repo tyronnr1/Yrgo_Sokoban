@@ -2,12 +2,6 @@
 #include <cstdint>
 #include <cassert> // So we can use assert()
 
-struct Entity{
-	uint8_t id;
-	int x;
-	int y;
-};
-
 enum Behaviour : uint32_t {
 	NONE = 0,
 	CAN_MOVE = 1 << 0,
@@ -16,6 +10,7 @@ enum Behaviour : uint32_t {
 };
 
 enum class ID : uint8_t {
+	NONE = 0,
 	WALL = 1,
 	WALL_SHADOW = 2,
 	WALL_LATERAL = 3,
@@ -42,4 +37,36 @@ enum class ID : uint8_t {
 	BOX_METAL = 24,
 	WATER_SHADOW_UP = 25,
 	PLAYER = 27
+};
+
+struct Entity{
+	ID id;
+	int x;
+	int y;
+	Behaviour behaviour;
+
+	bool HasBehaviour(Behaviour flags){
+		return (behaviour & flags) == flags;
+	}
+	void SetBehaviour(Behaviour flags){
+		behaviour = flags;
+	}
+	void AddBehaviour(Behaviour flags){
+		behaviour = (Behaviour)(behaviour | flags);
+	}
+	void RemoveBehaviour(Behaviour flags){
+		behaviour = (Behaviour)(behaviour & ~flags);
+	}
+	
+	void InitializeBaseBehaviour(){
+		assert(id != ID::NONE);
+		switch (id) {
+			default:
+				SetBehaviour(NONE);
+			break;
+			case ID::PLAYER:
+				SetBehaviour((Behaviour)(CAN_MOVE | IS_PLAYER | RESPOND_TO_INPUT));
+			break;
+		}
+	}
 };

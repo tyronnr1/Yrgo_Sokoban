@@ -58,12 +58,12 @@ void RenderEntities(GameData* data, SDL_Renderer* renderer){
         xPos += entity.x * CELL_SIZE_PX;
         yPos += entity.y * CELL_SIZE_PX;
 
-        if (entity.id == 27) {
+        if (entity.id == ID::PLAYER) {
             // player has its own separate PNG - no source rect needed
             RenderSprite(data->player, renderer, xPos, yPos);
         } else {
             // boxes and everything else assumed to come from the Sokoban.tsx tileset
-            SDL_FRect srcRect = GetTilesetSrcRect(entity.id, /*Sokoban.tsx firstgid*/ 26, TILESET_COLUMNS, TILESET_TILE_PX);
+            SDL_FRect srcRect = GetTilesetSrcRect(static_cast<int>(entity.id), /*Sokoban.tsx firstgid*/ 26, TILESET_COLUMNS, TILESET_TILE_PX);
             RenderSprite(data->tileset, renderer, xPos, yPos, srcRect);
         }
     }
