@@ -1,0 +1,14 @@
+# Build output
+build/
+*.obj
+*.exe
+*.pdb
+.cache/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+CMakeUserPresets.json
+
+# Runtime-generated files
+Sokoban_temp.dll
+temp_state.bin
