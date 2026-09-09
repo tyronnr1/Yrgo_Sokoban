@@ -5,10 +5,13 @@
 #include "arena.h"
 #include "Parsers/json.hpp"
 #include "entity.h"
+#include <print>
+
 using namespace std;
 
 const int LEVEL_INDEX = 0;
 const int ENTITIES_INDEX = 1;
+const int DECORATIONS_INDEX = 2;
 
 
 
@@ -16,7 +19,7 @@ void CreateLevel(Arena* arena, LevelData* level, const char* level_name){
 
 	fstream stream(level_name);
 	auto jsonResult = nlohmann::json::parse(stream);
-	vector dataField = jsonResult["layers"][LEVEL_INDEX]["data"].get<vector<uint8_t>>();
+	vector<uint8_t> dataField = jsonResult["layers"][LEVEL_INDEX]["data"].get<vector<uint8_t>>();
 
 	level->w = jsonResult["width"].get<int>();
 	level->h = jsonResult["height"].get<int>();
@@ -57,11 +60,35 @@ void CreateEntities(LevelData* lvl_data, Arena* arena){
 		if(entity_id != 0){
 			int x = i % lvl_data->w;
 			int y = i / lvl_data->w;
+
 			lvl_data->entityBuffer[index].id = (ID)entity_id;
 			lvl_data->entityBuffer[index].InitializeBaseBehaviour();
 			lvl_data->entityBuffer[index].x = x;
 			lvl_data->entityBuffer[index].y = y;
+			lvl_data->entityBuffer[index].x_prev = x;
+			lvl_data->entityBuffer[index].y_prev = y;
+			lvl_data->entityBuffer[index].progress_01 = 0.0f;
+
 			index += 1;
 		}
 	}
 }
+
+void CreateDecorations(Arena* arena, LevelData* level, const char* level_name) {
+	fstream stream(level_name);
+	auto jsonResult = nlohmann::json::parse(stream);
+	vector<uint8_t> dataField = jsonResult["layers"][DECORATIONS_INDEX]["data"].get<vector<uint8_t>>();
+
+	level->w = jsonResult["width"].get<int>();
+	level->h = jsonResult["height"].get<int>();
+
+	level->level_path = level_name;
+
+	size_t size_of_cells = sizeof(uint8_t) * level->w * level->h;
+	level->decorations = (uint8_t*)Memory::Allocate(arena, size_of_cells);
+
+	for (int i = 0; i < level->w * level->h; i++) {
+		level->decorations[i] = dataField[i];
+	}
+}
+

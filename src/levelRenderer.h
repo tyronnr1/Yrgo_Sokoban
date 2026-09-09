@@ -4,3 +4,5 @@
 
 void RenderLevel(Sokoban::GameData* gameData, SDL_Renderer* renderer);
 void RenderEntities(Sokoban::GameData* gameData, SDL_Renderer* renderer);
+
+void RenderDecorations(Sokoban::GameData* gameData, SDL_Renderer* renderer);

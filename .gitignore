@@ -12,3 +12,7 @@ CMakeUserPresets.json
 # Runtime-generated files
 Sokoban_temp.dll
 temp_state.bin
+
+/.vs
+/.include
+/.build

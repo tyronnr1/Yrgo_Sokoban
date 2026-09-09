@@ -12,6 +12,7 @@
 #include "gameState.h"
 #include <timeapi.h>
 #include <fstream>
+#include <print>
 
 using namespace std;
 
@@ -19,7 +20,7 @@ using namespace std;
 
 using Sokoban::GameData;
 
-typedef void (*Function_Initialize)(GameData* data, SDL_Renderer* renderer);
+typedef void (*Function_Initialize)(GameData* data, SDL_Window* window, SDL_Renderer* renderer); 
 typedef bool (*Function_HandleEvents)(GameData* data, SDL_Event event);
 typedef void (*Function_Update)(GameData* data, float dt);
 typedef void (*Function_Draw)(GameData* data, SDL_Renderer* renderer);
@@ -58,7 +59,7 @@ bool LoadDLL(DLL_INFO* info, int depth = 0)
 {
     if (depth > 20)
     {
-        println("failed to write temp DLL");
+        printf("failed to write temp DLL");
         return false;
     }
 
@@ -72,7 +73,7 @@ bool LoadDLL(DLL_INFO* info, int depth = 0)
     info->dll = LoadLibrary(NAME_OF_TEMP_DLL);
     if (info->dll == nullptr)
     {
-        println("could not load dll");
+        printf("could not load dll");
         return false;
     }
 
@@ -156,26 +157,49 @@ void RunSokoban()
    
     void* game_memory = AllocateGameMemory();
 
-    Memory::Arena arena{};
+    Memory::Arena* arena_main = new Memory::Arena();
 
     Memory::Initialize(
-        &arena,
+        arena_main,
         game_memory,
         GAME_MEMORY_ALLOWANCE
     );
     GameData* gameData = (GameData*)Memory::Allocate(
-        &arena,
+        arena_main,
         sizeof(GameData)
     );
 
     size_t IMAGE_ARENA_SIZE = sizeof(Image) * 1024;
 
-    gameData->arena_images = Memory::CreateSubArena(&arena, IMAGE_ARENA_SIZE);
-    gameData->arena_levels = Memory::CreateSubArena(&arena, MEGABYTES(3));
-    gameData->arena_entities = Memory::CreateSubArena(&arena, MEGABYTES(1)); // pick a reasonable size
+    gameData->arena_images = Memory::CreateSubArena(arena_main, IMAGE_ARENA_SIZE);
+    gameData->arena_levels = Memory::CreateSubArena(arena_main, MEGABYTES(3));
+    gameData->arena_entities = Memory::CreateSubArena(arena_main, MEGABYTES(1));   
+    
+    gameData->input_buffer_capacity = 2;
+    size_t RING_BUFFER_SIZE = sizeof(GameData::Position) * gameData->input_buffer_capacity;
+    gameData->input_buffer = (GameData::Position*)Memory::Allocate(gameData->arena_levels, RING_BUFFER_SIZE);
 
-    gameData->levelCount = 1; // however many levels you're supporting right now
-    gameData->levels = (LevelData*)Memory::Allocate(&arena, sizeof(LevelData) * gameData->levelCount);
+    gameData->levelCount = 3;
+    gameData->levels = (LevelData*)Memory::Allocate(arena_main, sizeof(LevelData) * gameData->levelCount);
+
+    gameData->arena_commands = Memory::CreateSubArena(gameData->arena_levels, MEGABYTES(1));
+
+    gameData->commandBuffer = (CommandBuffer*)Memory::Allocate(arena_main, sizeof(CommandBuffer));
+    gameData->commandBuffer->capacity = 20000;
+    size_t COMMAND_SIZE = sizeof(AnyCommand) * gameData->commandBuffer->capacity;
+    gameData->commandBuffer->allCommands = (AnyCommand*)Memory::Allocate(gameData->arena_commands, COMMAND_SIZE);
+
+    size_t INPUT_ARENA_SIZE = 0;
+
+    INPUT_ARENA_SIZE += sizeof(bool) * SDL_SCANCODE_COUNT * 2;
+    INPUT_ARENA_SIZE += sizeof(float) * SDL_SCANCODE_COUNT;
+    INPUT_ARENA_SIZE += 128;
+
+    gameData->arena_input = Memory::CreateSubArena(arena_main, INPUT_ARENA_SIZE);
+
+    gameData->input.keys_current = (bool*)Memory::Allocate(gameData->arena_input, sizeof(bool) * SDL_SCANCODE_COUNT);
+    gameData->input.keys_previous = (bool*)Memory::Allocate(gameData->arena_input, sizeof(bool) * SDL_SCANCODE_COUNT);
+    gameData->input.keys_held_time = (float*)Memory::Allocate(gameData->arena_input, sizeof(float) * SDL_SCANCODE_COUNT);
 
     MMRESULT result = timeBeginPeriod(1);
     if (result == TIMERR_NOCANDO) {
@@ -210,16 +234,17 @@ void RunSokoban()
     gameData->screenH = actualH;
 
     gameData->fallback = AssetManagement::LoadSprite(gameData->arena_images, renderer, "fallback.png");
-
-    dll.initialize(gameData, renderer);
+    
+    dll.initialize(gameData, window, renderer);
 
     bool running = true;
     float dt;
+    gameData->dt = &dt;
+
     while (running)
     {
         DLL_CheckStatus(&dll);
         CalculateDeltaTime(dt);
-
         gameData->currentFPS = (dt > 0.0f) ? (1.0f / dt) : 0.0f;
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -233,16 +258,18 @@ void RunSokoban()
             {
                 if (event.key.key == SDLK_F9)
                 {
-                    StoreGameState(&arena);
+                    StoreGameState(arena_main);
                 }
                 if (event.key.key == SDLK_F10)
                 {
-                    RetrieveGameState(&arena);
+                    RetrieveGameState(arena_main);
                 }
             }
         }
-
+        gameData->input.keys_current = SDL_GetKeyboardState(nullptr);
         dll.update(gameData, dt);
+        UpdateKeys(&gameData->input, dt);
+
         dll.draw(gameData, renderer);
 
         double time_to_sleep_ms;
@@ -255,9 +282,6 @@ void RunSokoban()
             while (time_to_sleep_ms > 0) {
                 CalculateRemainingFrameTime_MS(&time_to_sleep_ms);
             }
-        }
-        else {
-            printf("missed frame \n");
         }
     }
 

@@ -11,4 +11,8 @@ constexpr int FPS = 60;
 const double FRAME_TIME_MS = 1000.0 / FPS;
 
 const int UPSCALE_FACTOR = 3;
-const int CELL_SIZE_PX = 16 * UPSCALE_FACTOR;
+const int CELL_SIZE_PX = 16 * UPSCALE_FACTOR; 
+
+const float MOVE_SPEED = 9.0;
+
+const float UNDO_REPEAT_TIME = 0.15;

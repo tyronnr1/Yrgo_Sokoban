@@ -1,16 +1,37 @@
-cmake_minimum_required(VERSION 4.4.2)
+cmake_minimum_required(VERSION 3.31)
 project(Sokoban LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 23)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(DLL_NAME ${PROJECT_NAME}_game)
 set(SHARED_LIB_NAME ${PROJECT_NAME}_common)
+
 set(DIR_ASSETS_ORIGIN ${CMAKE_SOURCE_DIR}/assets)
 set(DIR_ASSETS_DESTINATION $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets)
+
 set(WINDOWS_LIBRARIES winmm)
 
 # Automatically find all .lib files in lib/
 file(GLOB_RECURSE LIB_FILES "${CMAKE_SOURCE_DIR}/lib/*.lib")
+
+# ============================================================
+# Dear ImGui sources (from src_external/imgui)
+# ============================================================
+set(IMGUI
+    src_external/imgui/imgui.cpp
+    src_external/imgui/imgui_draw.cpp
+    src_external/imgui/imgui_tables.cpp
+    src_external/imgui/imgui_widgets.cpp
+    src_external/imgui/imgui_impl_sdl3.cpp
+    src_external/imgui/imgui_impl_sdlrenderer3.cpp
+)
+
+# ============================================================
+# Source groupings
+# ============================================================
 
 # EXE-only source
 set(EXE_EXCLUSIVE
@@ -21,40 +42,67 @@ set(EXE_EXCLUSIVE
 set(SHARED_SOURCES
     ${CMAKE_SOURCE_DIR}/src/arena.cpp
     ${CMAKE_SOURCE_DIR}/src/image.cpp
+    ${CMAKE_SOURCE_DIR}/src/input.cpp
 )
 
 # Everything else in src/ (game logic) goes into the DLL
 file(GLOB_RECURSE DLL_EXCLUSIVE "${CMAKE_SOURCE_DIR}/src/*.cpp")
 list(REMOVE_ITEM DLL_EXCLUSIVE ${EXE_EXCLUSIVE} ${SHARED_SOURCES})
 
+# ============================================================
 # SHARED STATIC LIB
-add_library(${SHARED_LIB_NAME} STATIC ${SHARED_SOURCES})
+# ============================================================
+add_library(${SHARED_LIB_NAME} STATIC ${SHARED_SOURCES} "src/entity.cpp" "src/input.h" "src/hackUi.h" "src/hackUi.cpp")
 target_include_directories(${SHARED_LIB_NAME} PRIVATE include)
-
+target_include_directories(${SHARED_LIB_NAME} PRIVATE include src_external)
+# ============================================================
 # EXE
-add_executable(${PROJECT_NAME} ${EXE_EXCLUSIVE})
-target_include_directories(${PROJECT_NAME} PRIVATE include)
+# ============================================================
+add_executable(${PROJECT_NAME}
+    ${EXE_EXCLUSIVE}
+    ${IMGUI}                    
+ "src/entity.cpp" "src/input.h" "src/hackUi.h" "src/hackUi.cpp")
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    include
+    src_external                
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${LIB_FILES}
     ${SHARED_LIB_NAME}
     ${WINDOWS_LIBRARIES}
 )
 
+# ============================================================
 # GAME DLL
-add_library(${DLL_NAME} SHARED ${DLL_EXCLUSIVE})
-target_include_directories(${DLL_NAME} PRIVATE include)
+# ============================================================
+add_library(${DLL_NAME} SHARED
+    ${DLL_EXCLUSIVE}
+    ${IMGUI}                   
+ "src/entity.cpp" "src/input.h" "src/hackUi.h" "src/hackUi.cpp")
+
+target_include_directories(${DLL_NAME} PRIVATE
+    include
+    src_external                
+)
+
 target_link_libraries(${DLL_NAME} PRIVATE
     ${LIB_FILES}
     ${SHARED_LIB_NAME}
 )
 
+# ============================================================
 # Copy DLLs and assets to the executable's output directory
+# ============================================================
 file(GLOB_RECURSE DLL_FILES "${CMAKE_SOURCE_DIR}/lib/*.dll")
+
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${DLL_FILES}
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
 )
+
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
         ${DIR_ASSETS_ORIGIN} ${DIR_ASSETS_DESTINATION}

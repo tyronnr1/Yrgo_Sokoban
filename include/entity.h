@@ -1,12 +1,14 @@
 #pragma once
 #include <cstdint>
-#include <cassert> // So we can use assert()
+#include <cassert>
 
 enum Behaviour : uint32_t {
 	NONE = 0,
 	CAN_MOVE = 1 << 0,
 	IS_PLAYER = 1 << 1,
-	RESPOND_TO_INPUT = 1 << 2
+	RESPOND_TO_INPUT = 1 << 2,
+	CAN_WALK_THROUGH = 1<< 3,
+	KILLS_PLAYER = 1 << 4
 };
 
 enum class ID : uint8_t {
@@ -14,8 +16,8 @@ enum class ID : uint8_t {
 	WALL = 1,
 	WALL_SHADOW = 2,
 	WALL_LATERAL = 3,
-	PLAYER_SPAWN = 4,
-	EXIT = 5,
+	EXIT = 4,
+	COMMAND_PANEL = 5,
 	GRASS = 6,
 	GRASS_SHADOW = 7,
 	RUSTY_WALL = 8,
@@ -38,12 +40,15 @@ enum class ID : uint8_t {
 	WATER_SHADOW_UP = 25,
 	PLAYER = 27
 };
-
 struct Entity{
 	ID id;
 	int x;
 	int y;
 	Behaviour behaviour;
+
+	int x_prev;
+	int y_prev;
+	float progress_01;
 
 	bool HasBehaviour(Behaviour flags){
 		return (behaviour & flags) == flags;
@@ -67,6 +72,17 @@ struct Entity{
 			case ID::PLAYER:
 				SetBehaviour((Behaviour)(CAN_MOVE | IS_PLAYER | RESPOND_TO_INPUT));
 			break;
+			case ID::BOX_1:
+				SetBehaviour((Behaviour)(CAN_MOVE));
+				break;
+			case ID::SPIKE_DOWN:
+				SetBehaviour((Behaviour)(CAN_WALK_THROUGH));
+				break;
+			case ID::SPIKE:
+				SetBehaviour((Behaviour)(CAN_WALK_THROUGH | KILLS_PLAYER));
+				break;
 		}
 	}
 };
+
+bool IsMoving(Entity* e);
