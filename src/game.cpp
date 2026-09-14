@@ -175,6 +175,12 @@ extern "C"
             { 0, 1 };
         }
 
+        data->hackUiPanel.x = 50;
+        data->hackUiPanel.y = 50;
+        data->hackUiPanel.w = 800;
+        data->hackUiPanel.h = 600;
+        HACKUI::UpdateUIPanel(data,data->hackUiPanel);
+
 		//Move moving entities
         bool are_entities_moving = false;
         for (int i = 0; i < data->GetCurrentLevel()->entityCount; i++) {
@@ -205,8 +211,12 @@ extern "C"
                     TryMove(entity, data->GetCurrentLevel(), data->commandBuffer, xDir, yDir, data->command_timestamp);
                 }
             }
+  
+
+
             data->input_buffer_read_count++;
         }
+
     }
     
 
@@ -225,7 +235,8 @@ extern "C"
 
         // 4. Draw ImGui on top of everything
         if (data->hackUiOpen) {
-            HACKUI::DrawUIPanel(data->hackUiPanel);
+	
+            HACKUI::DrawUIPanel(data->hackUiPanel, renderer);
         }
         DEV::Draw(data, renderer);
 
