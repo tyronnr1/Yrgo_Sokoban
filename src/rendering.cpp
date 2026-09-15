@@ -3,20 +3,36 @@
 #include "common.h"
 #include "image.h"
 
-void RenderSprite(Image* sprite, SDL_Renderer* renderer, int xPos, int yPos, float scale){
+void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, float scale) {
     SDL_FRect rect;
-    rect.x = xPos;
-    rect.y = yPos;
+    rect.x = x;
+    rect.y = y;
     rect.h = sprite->height * UPSCALE_FACTOR * scale;
     rect.w = sprite->width * UPSCALE_FACTOR * scale;
+    rect.x -= camera->camera_x;
+    rect.y -= camera->camera_y;
+
     SDL_RenderTexture(renderer, sprite->texture, NULL, &rect);
 }
 
-void RenderSprite(Image* sprite, SDL_Renderer* renderer, int xPos, int yPos, SDL_FRect srcRect, float scale){
+void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, float scale) {
     SDL_FRect dstRect;
-    dstRect.x = xPos;
-    dstRect.y = yPos;
+    dstRect.x = x;
+    dstRect.y = y;
     dstRect.h = srcRect.h * UPSCALE_FACTOR * scale;
     dstRect.w = srcRect.w * UPSCALE_FACTOR * scale;
+    dstRect.x -= camera->camera_x;
+    dstRect.y -= camera->camera_y;
+
     SDL_RenderTexture(renderer, sprite->texture, &srcRect, &dstRect);
+}
+
+void RenderSprite_Grid(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, int screenW, int screenH, float scale) {
+    camera::GridToWorld(&x, &y, lvl, screenW, screenH);
+    RenderSprite_World(sprite, renderer, camera, x, y, scale);
+}
+
+void RenderSprite_Grid(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, int screenW, int screenH, float scale) {
+    camera::GridToWorld(&x, &y, lvl, screenW, screenH);
+    RenderSprite_World(sprite, renderer, camera, x, y, srcRect, scale);
 }

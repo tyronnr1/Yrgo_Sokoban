@@ -5,7 +5,7 @@
 #include "command.h"
 #include "input.h"
 #include "hackUi.h"
-
+#include "camera.h"
 struct Image;
 struct ImGuiContext;
 
@@ -19,6 +19,7 @@ namespace Sokoban
             float x;
             float y;
         };
+        Camera camera;
 
         int screenW;
         int screenH;
@@ -26,8 +27,6 @@ namespace Sokoban
         float currentFPS;
 
         Image* fallback;
-        Image* wall;
-        Image* ground;
         Image* player;
         Image* tileset;
 
