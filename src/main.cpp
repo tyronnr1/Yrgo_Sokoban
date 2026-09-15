@@ -233,8 +233,6 @@ void RunSokoban()
     gameData->screenW = actualW;
     gameData->screenH = actualH;
 
-    gameData->fallback = AssetManagement::LoadSprite(gameData->arena_images, renderer, "fallback.png");
-    
     dll.initialize(gameData, window, renderer);
 
     bool running = true;

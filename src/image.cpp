@@ -6,6 +6,7 @@
 
 #include "image.h"
 #include "arena.h"
+#include "gameState.h"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ Image* AssetManagement::LoadSprite( Memory::Arena* arena, SDL_Renderer* renderer
     assert(surface != nullptr);
 
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
 
     Image* img = (Image*)Memory::Allocate(arena, sizeof(Image));
 
@@ -34,4 +35,10 @@ Image* AssetManagement::LoadSprite( Memory::Arena* arena, SDL_Renderer* renderer
     
     SDL_DestroySurface(surface);
     return img;
+}
+
+void AssetManagement::LoadAllSprites(Sokoban::GameData* data, SDL_Renderer* renderer) {
+    data->fallback = LoadSprite(data->arena_images, renderer, "fallback.png");
+    data->tileset = LoadSprite(data->arena_images, renderer, "tileset.png");
+    data->player = LoadSprite(data->arena_images, renderer, "player.png");
 }

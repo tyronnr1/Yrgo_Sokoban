@@ -92,8 +92,7 @@ extern "C"
 {
     void Initialize(GameData* data, SDL_Window* window, SDL_Renderer* renderer)
     {
-        data->tileset = AssetManagement::LoadSprite(data->arena_images, renderer, "tileset.png");
-        data->player = AssetManagement::LoadSprite(data->arena_images, renderer, "player.png");
+        AssetManagement::LoadAllSprites(data, renderer);
         data->currentLevel = 0;
         CreateLevel(data->arena_levels, &data->levels[0], "assets/levels/playTestArea.tmj");
         CreateDecorations(data->arena_levels, &data->levels[0], "assets/levels/playTestArea.tmj");        

@@ -2,6 +2,7 @@
 #include "SDL3/SDL_render.h"
 #include "common.h"
 #include "image.h"
+#include <iostream>
 
 void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, float scale) {
     SDL_FRect rect;
@@ -17,8 +18,8 @@ void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* cam
 
 void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, float scale) {
     SDL_FRect dstRect;
-    dstRect.x = x;
-    dstRect.y = y;
+    dstRect.x = roundf(x);
+    dstRect.y = roundf(y);
     dstRect.h = srcRect.h * UPSCALE_FACTOR * scale;
     dstRect.w = srcRect.w * UPSCALE_FACTOR * scale;
     dstRect.x -= camera->camera_x;
@@ -33,6 +34,7 @@ void RenderSprite_Grid(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, co
 }
 
 void RenderSprite_Grid(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, int screenW, int screenH, float scale) {
+    
     camera::GridToWorld(&x, &y, lvl, screenW, screenH);
     RenderSprite_World(sprite, renderer, camera, x, y, srcRect, scale);
 }
