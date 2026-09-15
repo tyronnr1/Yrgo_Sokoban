@@ -9,6 +9,7 @@
 #include "hackUi.h"
 #include "command.h"
 #include "gameState.h"
+#include "input.h"
 using namespace std;
 
     bool IsInRect(SDL_FRect rect, float x, float y) {
@@ -25,8 +26,8 @@ using namespace std;
 
         SDL_FRect header = { panel.x, panel.y, panel.w, 20 };
 
-        if (data->hackUiOpen && IsInRect(header, mouseX, mouseY)) {
-            
+        if (data->hackUiOpen && IsInRect(header, mouseX, mouseY) && MouseHeld(&data->input, MouseButtons::LEFT)) {
+
         }
     }
     void HACKUI::DrawUIPanel(UIPanel& panel, SDL_Renderer* renderer) {

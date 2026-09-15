@@ -195,11 +195,14 @@ void RunSokoban()
     INPUT_ARENA_SIZE += sizeof(float) * SDL_SCANCODE_COUNT;
     INPUT_ARENA_SIZE += 128;
 
+    int mouseButtonCount = 3;
+
     gameData->arena_input = Memory::CreateSubArena(arena_main, INPUT_ARENA_SIZE);
 
     gameData->input.keys_current = (bool*)Memory::Allocate(gameData->arena_input, sizeof(bool) * SDL_SCANCODE_COUNT);
     gameData->input.keys_previous = (bool*)Memory::Allocate(gameData->arena_input, sizeof(bool) * SDL_SCANCODE_COUNT);
     gameData->input.keys_held_time = (float*)Memory::Allocate(gameData->arena_input, sizeof(float) * SDL_SCANCODE_COUNT);
+    gameData->input.mouse_held_time = (float*)Memory::Allocate(gameData->arena_input, sizeof(float) * mouseButtonCount);
 
     MMRESULT result = timeBeginPeriod(1);
     if (result == TIMERR_NOCANDO) {
@@ -265,10 +268,12 @@ void RunSokoban()
             }
         }
         gameData->input.keys_current = SDL_GetKeyboardState(nullptr);
+        gameData->input.mouse_current = SDL_GetMouseState(&gameData->input.mouse_x,&gameData->input.mouse_y);
         dll.update(gameData, dt);
         UpdateKeys(&gameData->input, dt);
 
         dll.draw(gameData, renderer);
+        UpdateMouse(&gameData->input, dt);
 
         double time_to_sleep_ms;
         CalculateRemainingFrameTime_MS(&time_to_sleep_ms);
