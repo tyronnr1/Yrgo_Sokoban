@@ -50,7 +50,9 @@ void CreateEntities(LevelData* lvl_data, Arena* arena){
 		}
 	}
 
-	lvl_data->entityBuffer = (Entity*)Memory::Allocate(arena, sizeof(Entity) * lvl_data->entityCount);
+	lvl_data->entityCapacity = lvl_data->entityCount + 32;
+
+	lvl_data->entityBuffer = (Entity*)Memory::Allocate( arena, sizeof(Entity) * lvl_data->entityCapacity );
 
 	int index = 0;
 	for (int i = 0; i < lvl_data->w * lvl_data->h; i++) {

@@ -9,6 +9,7 @@
 
 #include <string>
 #include <cmath>
+#include "leveleditor.h"
 
 using namespace std;
 
@@ -88,7 +89,11 @@ void DEV::Draw(Sokoban::GameData* data, SDL_Renderer* renderer)
         DrawFPS(*data->dt);
 
     ImGui::End();
-
+    
+    if (data->edit_level) {
+        EDITOR::DrawObjectPanel(&data->editorData, data->tileset, data->player);
+        EDITOR::DrawPreview(&data->editorData, &data->input, renderer, data->GetCurrentLevel(), &data->camera, data->tileset, data->player, data->screenW, data->screenH);
+    }
     ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
 }

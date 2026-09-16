@@ -12,6 +12,7 @@ struct LevelData{
 
 	Entity* entityBuffer;
 	int entityCount;
+	int entityCapacity;
 	
 	uint8_t* decorations;
 

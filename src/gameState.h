@@ -6,6 +6,8 @@
 #include "input.h"
 #include "hackUi.h"
 #include "camera.h"
+#include "editor.h"
+
 struct Image;
 struct ImGuiContext;
 
@@ -59,5 +61,8 @@ namespace Sokoban
 
         bool hackUiOpen = false;
         UIPanel hackUiPanel;
+
+        bool edit_level = false;
+        Editor editorData;
     };
 }

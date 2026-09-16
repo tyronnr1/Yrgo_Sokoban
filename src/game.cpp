@@ -13,6 +13,7 @@
 #include "hackUi.h"
 #include "imgui/imgui.h"
 #include "input.h"
+#include "leveleditor.h"
 
 using namespace Sokoban;
 
@@ -176,7 +177,12 @@ extern "C"
             data->input_buffer[data->input_buffer_write_count++ % data->input_buffer_capacity] =
             { 0, 1 };
         }
-
+        if (KeyPressed(&data->input, SDL_SCANCODE_F2)) {
+            data->edit_level = !data->edit_level;
+        }
+        if (data->edit_level) {
+            EDITOR::Update(&data->editorData, &data->input, data->GetCurrentLevel(), data->screenW, data->screenH);
+        }
 
         HACKUI::UpdateUIPanel(data,data->hackUiPanel);
 

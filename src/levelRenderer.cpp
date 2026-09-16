@@ -4,9 +4,6 @@
 
 using namespace Sokoban;
 
-constexpr int TILESET_COLUMNS = 5;
-constexpr int TILESET_TILE_PX = 16;
-constexpr int TILESET_FIRSTGID = 1;
 
 SDL_FRect GetTilesetSrcRect(int gid, int tilesetFirstGid, int columns, int tileSize) {
     int localId = gid - tilesetFirstGid;

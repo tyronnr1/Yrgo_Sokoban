@@ -86,3 +86,10 @@ struct Entity{
 };
 
 bool IsMoving(Entity* e);
+
+struct LevelData;
+
+bool IsMoving(Entity* e);
+
+void AddEntity(ID id, int x, int y, LevelData* level);
+void RemoveEntity(int x, int y, LevelData* level);

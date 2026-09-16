@@ -52,7 +52,7 @@ list(REMOVE_ITEM DLL_EXCLUSIVE ${EXE_EXCLUSIVE} ${SHARED_SOURCES})
 # ============================================================
 # SHARED STATIC LIB
 # ============================================================
-add_library(${SHARED_LIB_NAME} STATIC ${SHARED_SOURCES} "src/entity.cpp" "src/input.h" "src/hackUi.h" "src/hackUi.cpp" "src/camera.h" "src/camera.cpp")
+add_library(${SHARED_LIB_NAME} STATIC ${SHARED_SOURCES} "src/entity.cpp" "src/input.h" "src/hackUi.h" "src/hackUi.cpp" "src/camera.h" "src/camera.cpp" "src/leveleditor.h")
 target_include_directories(${SHARED_LIB_NAME} PRIVATE include)
 target_include_directories(${SHARED_LIB_NAME} PRIVATE include src_external)
 # ============================================================
@@ -61,7 +61,7 @@ target_include_directories(${SHARED_LIB_NAME} PRIVATE include src_external)
 add_executable(${PROJECT_NAME}
     ${EXE_EXCLUSIVE}
     ${IMGUI}                    
- "src/entity.cpp" "src/input.h" "src/hackUi.h" "src/hackUi.cpp" "src/camera.h" "src/camera.cpp")
+ "src/entity.cpp" "src/input.h" "src/hackUi.h" "src/hackUi.cpp" "src/camera.h" "src/camera.cpp" "src/leveleditor.h")
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
@@ -80,7 +80,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 add_library(${DLL_NAME} SHARED
     ${DLL_EXCLUSIVE}
     ${IMGUI}                   
- "src/entity.cpp" "src/input.h" "src/hackUi.h" "src/hackUi.cpp" "src/camera.h" "src/camera.cpp")
+ "src/entity.cpp" "src/input.h" "src/hackUi.h" "src/hackUi.cpp" "src/camera.h" "src/camera.cpp" "src/leveleditor.h")
 
 target_include_directories(${DLL_NAME} PRIVATE
     include
