@@ -22,6 +22,11 @@ enum class MouseButtons {
 	MIDDLE = 1,
 	RIGHT = 2,
 };
+
+struct Vector {
+	float x;
+	float y;
+};
 bool KeyPressed(const Input* input, SDL_Scancode Key);
 bool KeyHeld(const Input* input, SDL_Scancode Key);
 bool KeyReleased(const Input* input, SDL_Scancode Key);
@@ -35,3 +40,4 @@ bool MouseReleased(const Input* input, MouseButtons button);
 bool MouseHeld(const Input* input, MouseButtons button);
 bool MouseHeld_ForTime(const Input* input, MouseButtons button, float min_length);
 void UpdateMouse(Input* input, float dt);
+Vector GetMousePosition(const Input* input);

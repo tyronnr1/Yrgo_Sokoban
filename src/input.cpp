@@ -57,6 +57,8 @@ void ResetAll(Input* input) {
 	memset((void*)input->keys_held_time, 0, sizeof(float) * SDL_SCANCODE_COUNT);
 }
 
+
+
 bool MousePressed(const Input* input, MouseButtons button) {
 	SDL_MouseButtonFlags flag = ButtonToFlag(button);
 	return (input->mouse_current & flag) != 0 && (input->mouse_previous & flag) == 0;
@@ -93,4 +95,8 @@ void UpdateMouse(Input* input, float dt) {
 		input->mouse_held_time[(int)MouseButtons::RIGHT] = 0;
 	}
 	input->mouse_previous = input->mouse_current;
+}
+
+Vector GetMousePosition(const Input* input) {
+	return { input->mouse_x, input->mouse_y};
 }

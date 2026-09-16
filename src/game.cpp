@@ -106,7 +106,10 @@ extern "C"
 
 
         CreateEntities(&data->levels[data->currentLevel], data->arena_entities);
-
+        data->hackUiPanel.x = 50;
+        data->hackUiPanel.y = 50;
+        data->hackUiPanel.w = 800;
+        data->hackUiPanel.h = 600;
         DEV::Initialize(window, renderer);
         data->imGui_context = ImGui::GetCurrentContext();
     }
@@ -174,10 +177,7 @@ extern "C"
             { 0, 1 };
         }
 
-        data->hackUiPanel.x = 50;
-        data->hackUiPanel.y = 50;
-        data->hackUiPanel.w = 800;
-        data->hackUiPanel.h = 600;
+
         HACKUI::UpdateUIPanel(data,data->hackUiPanel);
 
 		//Move moving entities

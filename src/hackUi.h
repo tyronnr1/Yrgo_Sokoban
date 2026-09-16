@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include "input.h"
 #include "imgui/imgui.h"
 #include <SDL3/SDL.h>
 using namespace std;
@@ -20,10 +20,13 @@ struct UIPanel {
 	float y;
 	float w;
 	float h;
+	bool dragging = false;
 };
 
 namespace HACKUI {
-
+	extern Vector mouseStartPos;
+	extern Vector mouseCurrentPos;
 	void DrawUIPanel(UIPanel& panel, SDL_Renderer* renderer);
 	void UpdateUIPanel(Sokoban::GameData* data, UIPanel& panel);
+	void MovePanel(Sokoban::GameData* data, UIPanel* panel, float dx, float dy);
 }
