@@ -12,7 +12,7 @@ using namespace std;
 const int LEVEL_INDEX = 0;
 const int ENTITIES_INDEX = 1;
 const int DECORATIONS_INDEX = 2;
-
+ 
 
 
 void CreateLevel(Arena* arena, LevelData* level, const char* level_name){

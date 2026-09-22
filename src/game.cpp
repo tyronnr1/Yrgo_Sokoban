@@ -39,6 +39,11 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
     }
 
     if (blocker != nullptr) {
+
+        if ((blocker->HasBehaviour(IS_HEAVY) && !mover->HasBehaviour(IS_PLAYER)) || mover->HasBehaviour(IS_HEAVY)) {
+            return false;
+        }
+
         if (TryMove(blocker, level, cmd_buffer, xDir, yDir, timestamp)) {
             MoveCommand mv;
             mv.type = CMD_TYPE::MOVE;
@@ -103,15 +108,16 @@ extern "C"
 
         CreateLevel(data->arena_levels, &data->levels[2], "assets/levels/lvl2.tmj");
         CreateDecorations(data->arena_levels, &data->levels[2], "assets/levels/lvl2.tmj");        
-        
-
-
+   
         CreateEntities(&data->levels[data->currentLevel], data->arena_entities);
+
         data->hackUiPanel.x = 50;
         data->hackUiPanel.y = 50;
         data->hackUiPanel.w = 800;
         data->hackUiPanel.h = 600;
+
         DEV::Initialize(window, renderer);
+
         data->imGui_context = ImGui::GetCurrentContext();
     }
 

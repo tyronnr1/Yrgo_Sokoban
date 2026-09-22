@@ -8,7 +8,8 @@ enum Behaviour : uint32_t {
 	IS_PLAYER = 1 << 1,
 	RESPOND_TO_INPUT = 1 << 2,
 	CAN_WALK_THROUGH = 1<< 3,
-	KILLS_PLAYER = 1 << 4
+	KILLS_PLAYER = 1 << 4,
+	IS_HEAVY = 1 << 5
 };
 
 enum class ID : uint8_t {
@@ -74,6 +75,9 @@ struct Entity{
 			break;
 			case ID::BOX_1:
 				SetBehaviour((Behaviour)(CAN_MOVE));
+				break;
+			case ID::BOX_METAL:
+				SetBehaviour((Behaviour)(CAN_MOVE | IS_HEAVY));
 				break;
 			case ID::SPIKE_DOWN:
 				SetBehaviour((Behaviour)(CAN_WALK_THROUGH));
