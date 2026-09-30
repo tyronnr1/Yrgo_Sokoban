@@ -1,6 +1,7 @@
 #include "command.h"
+#include "levels.h"
 
-void Execute(AnyCommand cmd, bool from_redo = false) {
+void Execute(AnyCommand cmd, LevelData* level, bool from_redo = false) {
     switch (cmd.command.type) {
     case CMD_TYPE::NONE:
         break;
@@ -23,7 +24,7 @@ void Execute(AnyCommand cmd, bool from_redo = false) {
         rotate.entity->facing = rotate.to;
         break;
     }
-    case CMD_TYPE::MODIFY_BEHAVIOUR: { // new
+    case CMD_TYPE::MODIFY_BEHAVIOUR: {
         ModifyBehaviourCommand modify = cmd.modify;
         if (modify.mode == ModifyBehaviourCommand::ADD) {
             AddBehaviour(modify.entity, modify.flag);
@@ -33,18 +34,28 @@ void Execute(AnyCommand cmd, bool from_redo = false) {
         }
         break;
     }
+    case CMD_TYPE::ADD: { // new
+        AddCommand* add = &cmd.add;
+        AddEntity(add->id, add->x, add->y, level);
+        break;
+    }
+    case CMD_TYPE::REMOVE: { // new
+        RemoveCommand* remove = &cmd.remove;
+        RemoveEntity(remove->x, remove->y, level);
+        break;
+    }
     }
 }
 
-void Push(CommandBuffer* buffer, AnyCommand cmd) {
+void Push(CommandBuffer* buffer, AnyCommand cmd, LevelData* level) {
     buffer->allCommands[buffer->index] = cmd;
     buffer->allCommands[buffer->index].command.timestamp = buffer->command_timestamp;
     buffer->index++;
     buffer->head = buffer->index;
-    Execute(cmd);
+    Execute(cmd, level);
 }
 
-void Undo(CommandBuffer* buffer) {
+void Undo(CommandBuffer* buffer, LevelData* level) {
     if (buffer->index == 0) {
         return;
     }
@@ -69,25 +80,37 @@ void Undo(CommandBuffer* buffer) {
         rotate.entity->facing = rotate.from;
         break;
     }
-    case CMD_TYPE::MODIFY_BEHAVIOUR: { // new
+    case CMD_TYPE::MODIFY_BEHAVIOUR: {
         ModifyBehaviourCommand modify = cmd.modify;
         if (modify.mode == ModifyBehaviourCommand::ADD) {
-            RemoveBehaviour(modify.entity, modify.flag); // inverted
+            RemoveBehaviour(modify.entity, modify.flag);
         }
         else {
             AddBehaviour(modify.entity, modify.flag);
         }
         break;
     }
+    case CMD_TYPE::ADD: { // new
+        AddCommand* add = &cmd.add;
+        RemoveEntity(add->x, add->y, level);
+        break;
+    }
+    case CMD_TYPE::REMOVE: { // new
+        RemoveCommand* remove = &cmd.remove;
+        AddEntity(remove->storedID, remove->x, remove->y, level);
+        Entity* entity = level->GetEntity(remove->x, remove->y);
+        SetBehaviour(entity, remove->storedBehaviour);
+        break;
+    }
     }
     if (buffer->index > 0) {
         if (buffer->allCommands[buffer->index - 1].command.timestamp == timestamp) {
-            Undo(buffer);
+            Undo(buffer, level);
         }
     }
 }
 
-void Redo(CommandBuffer* buffer) {
+void Redo(CommandBuffer* buffer, LevelData* level) {
     AnyCommand cmd = buffer->allCommands[buffer->index];
     if (cmd.command.type == CMD_TYPE::NONE) {
         return;
@@ -96,14 +119,13 @@ void Redo(CommandBuffer* buffer) {
         return;
     }
     buffer->index++;
-    Execute(cmd,true);
+    Execute(cmd, level, true);
 
-    int timestamp = cmd.command.timestamp; 
-    if (buffer->index != buffer->head) { 
+    int timestamp = cmd.command.timestamp;
+    if (buffer->index != buffer->head) {
         AnyCommand nextCommand = buffer->allCommands[buffer->index];
         if (nextCommand.command.timestamp == timestamp) {
-            Redo(buffer);
+            Redo(buffer, level);
         }
     }
-
 }

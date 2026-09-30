@@ -6,6 +6,7 @@
 #include "entity.h"
 #include "levels.h"
 #include "editor.h"
+#include "command.h"
 
 struct EditorObject {
     ID id;
@@ -15,7 +16,7 @@ struct EditorObject {
 
 namespace EDITOR {
     void DrawObjectPanel(Editor* editor, Image* tileset, Image* player);
-    void PlaceObject(int x, int y, Editor* editor, LevelData* level);
-    void Update(Editor* editor, Input* input, LevelData* level, int screenW, int screenH);
+    void PlaceObject(int x, int y, Editor* editor, LevelData* level, CommandBuffer* commandBuffer);
+    void Update(Editor* editor, Input* input, LevelData* level, CommandBuffer* commandBuffer, int screenW, int screenH);
     void DrawPreview(Editor* editor, Input* input, SDL_Renderer* renderer, LevelData* level, Camera* camera, Image* tileset, Image* player, int screenW, int screenH);
 }

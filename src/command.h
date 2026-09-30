@@ -3,12 +3,15 @@
 #include "entity.h"
 #include "hackUi.h"
 
+struct LevelData;
+
 enum class CMD_TYPE : uint8_t {
     NONE = 0,
     MOVE = 1,
     ROTATE = 2,
     MODIFY_BEHAVIOUR = 3,
-    //HACK = 2
+    ADD = 4,
+    REMOVE = 5
 };
 
 struct Command {
@@ -58,10 +61,38 @@ struct ModifyBehaviourCommand : Command {
     }
 };
 
+struct AddCommand : Command {
+    int x;
+    int y;
+    ID id;
+
+    AddCommand(int x, int y, ID id) {
+        this->x = x;
+        this->y = y;
+        this->id = id;
+        type = CMD_TYPE::ADD;
+    }
+};
+
+struct RemoveCommand : Command {
+    int x;
+    int y;
+    Behaviour storedBehaviour;
+    ID storedID;
+
+    RemoveCommand(Entity* entity) {
+        x = entity->x;
+        y = entity->y;
+        storedBehaviour = entity->behaviour;
+        storedID = entity->id;
+        type = CMD_TYPE::REMOVE;
+    }
+};
+
 struct HackLine {
     Entity* e;
     Behaviour bh;
-    HackAction action; // ADD or REMOVE
+    HackAction action;
 };
 
 struct CompileCommand : Command {
@@ -74,11 +105,15 @@ union AnyCommand {
     MoveCommand move;
     RotateCommand rotate;
     ModifyBehaviourCommand modify;
+    AddCommand add;
+    RemoveCommand remove; 
     //CompileCommand compile;
 
     AnyCommand(MoveCommand mv) { move = mv; }
     AnyCommand(RotateCommand rc) { rotate = rc; }
     AnyCommand(ModifyBehaviourCommand mc) { modify = mc; }
+    AnyCommand(AddCommand ac) { add = ac; }
+    AnyCommand(RemoveCommand rc) { remove = rc; }
     //   AnyCommand(CompileCommand cmd) { compile = cmd; }
 };
 
@@ -90,6 +125,6 @@ struct CommandBuffer {
     uint32_t command_timestamp;
 };
 
-void Push(CommandBuffer* buffer, AnyCommand cmd);
-void Undo(CommandBuffer* buffer);
-void Redo(CommandBuffer* buffer);
+void Push(CommandBuffer* buffer, AnyCommand cmd, LevelData* level);
+void Undo(CommandBuffer* buffer, LevelData* level);
+void Redo(CommandBuffer* buffer, LevelData* level);

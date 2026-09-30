@@ -25,17 +25,17 @@ static void Draw_Imgui_Arena_Usage(Memory::Arena* arena, const string& name)
     ImGui::ProgressBar(fraction, ImVec2(-1.0f, 0.0f), barText.c_str());
 }
 
-static void Draw_History(CommandBuffer* buffer)
+static void Draw_History(CommandBuffer* buffer, LevelData* level)
 {
     int sliderPos = buffer->index;
 
     if (ImGui::SliderInt("history", &sliderPos, 0, buffer->head))
     {
         while (buffer->index > sliderPos)
-            Undo(buffer);
+            Undo(buffer, level);
 
         while (buffer->index < sliderPos)
-            Redo(buffer);
+            Redo(buffer, level);
     }
 }
 
@@ -83,7 +83,7 @@ void DEV::Draw(Sokoban::GameData* data, SDL_Renderer* renderer)
     Draw_Imgui_Arena_Usage(data->arena_commands, "commands");
     Draw_Imgui_Arena_Usage(data->arena_entities, "entities");
 
-    Draw_History(data->commandBuffer);
+    Draw_History(data->commandBuffer, data->GetCurrentLevel());
 
     if (data->dt)
         DrawFPS(*data->dt);

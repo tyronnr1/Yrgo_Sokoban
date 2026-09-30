@@ -2,7 +2,7 @@
 #include "imgui/imgui.h"
 #include "rendering.h"
 #include "levelRenderer.h"
-
+#include "command.h"
 namespace EDITOR {
 
     static const EditorObject all_editor_objects[] = {
@@ -46,33 +46,39 @@ namespace EDITOR {
         ImGui::End();
     }
 
-    void PlaceObject(int x, int y, Editor* editor, LevelData* level) {
+    void PlaceObject(int x, int y, Editor* editor, LevelData* level, CommandBuffer* commandBuffer) {
         for (const EditorObject& obj : all_editor_objects) {
             if (obj.id == editor->object_to_place_id) {
                 if (obj.is_tile) {
                     level->cells[y * level->w + x] = (int)obj.id;
                 }
                 else {
-                    AddEntity(obj.id, x, y, level);
+                    AddCommand add(x, y, obj.id);
+                    Push(commandBuffer, add, level);
                 }
                 return;
             }
         }
     }
 
-    void Update(Editor* editor, Input* input, LevelData* level, int screenW, int screenH) {
+    void Update(Editor* editor, Input* input, LevelData* level, CommandBuffer* commandBuffer, int screenW, int screenH) {
         if (MousePressed(input, MouseButtons::LEFT)) {
             if (camera::GetIsPointInsideGrid(input->mouse_x, input->mouse_y, level, screenW, screenH)) {
                 int x, y;
                 camera::WorldToGrid(input->mouse_x, input->mouse_y, &x, &y, level, screenW, screenH);
-                PlaceObject(x, y, editor, level);
+                PlaceObject(x, y, editor, level, commandBuffer);
             }
         }
         else if (MousePressed(input, MouseButtons::RIGHT)) {
             if (camera::GetIsPointInsideGrid(input->mouse_x, input->mouse_y, level, screenW, screenH)) {
                 int x, y;
                 camera::WorldToGrid(input->mouse_x, input->mouse_y, &x, &y, level, screenW, screenH);
-                RemoveEntity(x, y, level);
+                Entity* entity = level->GetEntity(x, y);
+                if (entity == nullptr) {
+                    return;
+                }
+                RemoveCommand remove(entity);
+                Push(commandBuffer, remove, level);
             }
         }
     }

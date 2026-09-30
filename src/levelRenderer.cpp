@@ -36,15 +36,15 @@ int GetDrawLayer(ID id) {
 }
 
 void RenderLevel(GameData* gameData, SDL_Renderer* renderer) {
-    LevelData lvl = gameData->levels[gameData->currentLevel];
-    for (int x = 0; x < lvl.w; x++) {
-        for (int y = 0; y < lvl.h; y++) {
-            uint8_t cellType = lvl.GetCellID(x, y);
-            if (cellType == 0) continue; // empty cell
+    LevelData* lvl = &gameData->levels[gameData->currentLevel];
+    for (int x = 0; x < lvl->w; x++) {
+        for (int y = 0; y < lvl->h; y++) {
+            uint8_t cellType = lvl->GetCellID(x, y);
+            if (cellType == 0) continue;
 
             SDL_FRect srcRect = GetTilesetSrcRect(cellType, TILESET_FIRSTGID, TILESET_COLUMNS, TILESET_TILE_PX);
 
-            RenderSprite_Grid(gameData->tileset, &lvl, renderer, &gameData->camera, (float)x, (float)y, srcRect, gameData->screenW, gameData->screenH);
+            RenderSprite_Grid(gameData->tileset, lvl, renderer, &gameData->camera, (float)x, (float)y, srcRect, gameData->screenW, gameData->screenH);
         }
     }
 }
@@ -80,15 +80,15 @@ void RenderEntities(GameData* data, SDL_Renderer* renderer) {
     }
 }
 void RenderDecorations(GameData* gameData, SDL_Renderer* renderer) {
-    LevelData lvl = gameData->levels[gameData->currentLevel];
-    for (int x = 0; x < lvl.w; x++) {
-        for (int y = 0; y < lvl.h; y++) {
-            uint8_t cellType = lvl.GetDecorationID(x, y);
-            if (cellType == 0) continue; // empty cell
+    LevelData* lvl = &gameData->levels[gameData->currentLevel];
+    for (int x = 0; x < lvl->w; x++) {
+        for (int y = 0; y < lvl->h; y++) {
+            uint8_t cellType = lvl->GetDecorationID(x, y);
+            if (cellType == 0) continue;
 
             SDL_FRect srcRect = GetTilesetSrcRect(cellType, TILESET_FIRSTGID, TILESET_COLUMNS, TILESET_TILE_PX);
 
-            RenderSprite_Grid(gameData->tileset, &lvl, renderer, &gameData->camera, (float)x, (float)y, srcRect, gameData->screenW, gameData->screenH);
+            RenderSprite_Grid(gameData->tileset, lvl, renderer, &gameData->camera, (float)x, (float)y, srcRect, gameData->screenW, gameData->screenH);
         }
     }
 }

@@ -18,7 +18,7 @@
 using namespace Sokoban;
 
 
-bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDir, int yDir, int timestamp, int strength)
+bool TryMove(GameData* data, Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDir, int yDir, int timestamp, int strength)
 {
     if (strength < 0) {
         return false;
@@ -48,14 +48,14 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
             return false;
         }
 
-        if (TryMove(blocker, level, cmd_buffer, xDir, yDir, timestamp, --strength)) {
+        if (TryMove(data,blocker, level, cmd_buffer, xDir, yDir, timestamp, --strength)) {
             MoveCommand mv;
             mv.type = CMD_TYPE::MOVE;
             mv.entity = mover;
             mv.xDir = xDir;
             mv.yDir = yDir;
             AddBehaviour(mover, IS_PUSHING);
-            Push(cmd_buffer, mv);
+            Push(cmd_buffer, mv, data->GetCurrentLevel());
             return true;
         }
         return false;
@@ -80,7 +80,7 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
             mv.entity = mover;
             mv.xDir = xDir;
             mv.yDir = yDir;
-            Push(cmd_buffer, mv);
+            Push(cmd_buffer, mv, data->GetCurrentLevel());
             return true;
         }
         return false;
@@ -92,7 +92,7 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
         mv.entity = mover;
         mv.xDir = xDir;
         mv.yDir = yDir;
-        Push(cmd_buffer, mv);
+        Push(cmd_buffer, mv, data->GetCurrentLevel());
         return true;
     }
 
@@ -143,10 +143,10 @@ extern "C"
             SDL_SCANCODE_Z, UNDO_REPEAT_TIME)) {
                 ResetKeyHeldTime(&data->input, SDL_SCANCODE_Z);
             if (KeyHeld(&data->input, SDL_SCANCODE_LSHIFT)) {
-                Redo(data->commandBuffer);
+                Redo(data->commandBuffer, data->GetCurrentLevel());
             }
             else {
-                Undo(data->commandBuffer);
+                Undo(data->commandBuffer, data->GetCurrentLevel());
             }
         }
 
@@ -198,7 +198,7 @@ extern "C"
             data->edit_level = !data->edit_level;
         }
         if (data->edit_level) {
-            EDITOR::Update(&data->editorData, &data->input, data->GetCurrentLevel(), data->screenW, data->screenH);
+            EDITOR::Update(&data->editorData, &data->input, data->GetCurrentLevel(), data->commandBuffer, data->screenW, data->screenH);
         }
 
         HACKUI::UpdateUIPanel(data,data->hackUiPanel);
@@ -240,10 +240,10 @@ extern "C"
                     Direction new_facing = DirectionFromXY(xDir, yDir);
                     if (new_facing != entity->facing) {
                         RotateCommand rotate(entity, entity->facing, new_facing);
-                        Push(data->commandBuffer, rotate); // no timestamp param
+                        Push(data->commandBuffer, rotate, data->GetCurrentLevel()); // no timestamp param
                     }
 
-                    TryMove(entity, data->GetCurrentLevel(), data->commandBuffer, xDir, yDir, data->commandBuffer->command_timestamp, entity->strength); // no timestamp param
+                    TryMove(data, entity, data->GetCurrentLevel(), data->commandBuffer, xDir, yDir, data->commandBuffer->command_timestamp, entity->strength); // no timestamp param
                 }
             }
             data->input_buffer_read_count++;
