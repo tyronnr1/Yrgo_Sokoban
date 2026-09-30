@@ -4,8 +4,11 @@
 #include "image.h"
 #include "levels.h"
 
-void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, float scale = 1);
-void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, float scale = 1);
+void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, float scale = 1, float alpha = 1, bool flipped = false);
+void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, float scale = 1, float alpha = 1, bool flipped = false);
 
-void RenderSprite_Grid(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, int screenW, int screenH, float scale = 1);
-void RenderSprite_Grid(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, int screenW, int screenH, float scale = 1);
+void RenderSprite_Grid(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, int screenW, int screenH, float scale = 1, float alpha = 1, bool flipped = false);
+void RenderSprite_Grid(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, int screenW, int screenH, float scale = 1, float alpha = 1, bool flipped = false);
+
+void RenderEntity_OnTile(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, int screenW, int screenH, float scale = 1, float alpha = 1, bool flipped = false);
+void RenderEntity_OnTile(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, int screenW, int screenH, float scale = 1, float alpha = 1, bool flipped = false);

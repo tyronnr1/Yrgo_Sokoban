@@ -62,5 +62,7 @@ namespace Sokoban
 
         bool edit_level = false;
         Editor editorData;
+
+        Image* dropshadow;
     };
 }

@@ -48,12 +48,13 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
             return false;
         }
 
-        if (TryMove(blocker, level, cmd_buffer, xDir, yDir, cmd_buffer->command_timestamp, --strength)) {
+        if (TryMove(blocker, level, cmd_buffer, xDir, yDir, timestamp, --strength)) {
             MoveCommand mv;
             mv.type = CMD_TYPE::MOVE;
             mv.entity = mover;
             mv.xDir = xDir;
             mv.yDir = yDir;
+            AddBehaviour(mover, IS_PUSHING);
             Push(cmd_buffer, mv);
             return true;
         }
@@ -150,13 +151,19 @@ extern "C"
         }
 
 
-        if (KeyPressed(&data->input, SDL_SCANCODE_SPACE)){
+        if (KeyPressed(&data->input, SDL_SCANCODE_SPACE)) {
             for (int i = 0; i < data->GetCurrentLevel()->entityCount; i++) {
                 Entity* entity = &data->GetCurrentLevel()->entityBuffer[i];
                 if (HasBehaviour(entity, CAN_MOVE) && HasBehaviour(entity, RESPOND_TO_INPUT)) {
                     uint8_t cellID = data->GetCurrentLevel()->GetCellID(entity->x, entity->y);
                     if (cellID == (uint8_t)ID::COMMAND_PANEL) {
                         data->hackUiOpen = !data->hackUiOpen;
+                        if (data->hackUiOpen) {
+                            AddBehaviour(entity, IS_HACKING);
+                        }
+                        else {
+                            RemoveBehaviour(entity, IS_HACKING);
+                        }
                     }
                 }
             }
@@ -200,6 +207,7 @@ extern "C"
         bool are_entities_moving = false;
         for (int i = 0; i < data->GetCurrentLevel()->entityCount; i++) {
             Entity* entity = &data->GetCurrentLevel()->entityBuffer[i];
+
             if (HasBehaviour(entity, CAN_MOVE) && IsMoving(entity)) {
                 entity->progress_01 += MOVE_SPEED * dt;
                 if (entity->progress_01 >= 1) {
@@ -217,9 +225,14 @@ extern "C"
             if (data->input_buffer_read_count == data->input_buffer_write_count) {
                 return;
             }
-            data->commandBuffer->command_timestamp += 1; // was: data->command_timestamp += 1;
+            data->commandBuffer->command_timestamp += 1;
             for (int i = 0; i < data->GetCurrentLevel()->entityCount; i++) {
                 Entity* entity = &data->GetCurrentLevel()->entityBuffer[i];
+
+                if (HasBehaviour(entity, IS_PUSHING)) {
+                    RemoveBehaviour(entity, IS_PUSHING);
+                }
+
                 if (HasBehaviour(entity, (Behaviour)(RESPOND_TO_INPUT | CAN_MOVE))) {
                     int xDir = data->input_buffer[data->input_buffer_read_count % data->input_buffer_capacity].x;
                     int yDir = data->input_buffer[data->input_buffer_read_count % data->input_buffer_capacity].y;

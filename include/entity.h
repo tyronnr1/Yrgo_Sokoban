@@ -10,7 +10,9 @@ enum Behaviour : uint32_t {
 	CAN_WALK_THROUGH = 1<< 3,
 	KILLS_PLAYER = 1 << 4,
 	IS_HEAVY = 1 << 5,
-	CAN_ROTATE = 1 << 6
+	CAN_ROTATE = 1 << 6, 
+	IS_PUSHING = 1 << 7,
+	IS_HACKING = 1 << 8
 };
 enum class Direction {
 	RIGHT,

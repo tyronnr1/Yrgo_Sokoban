@@ -63,17 +63,22 @@ void RenderEntities(GameData* data, SDL_Renderer* renderer) {
             float x_animated = entity.x_prev + (entity.x - entity.x_prev) * entity.progress_01;
             float y_animated = entity.y_prev + (entity.y - entity.y_prev) * entity.progress_01;
 
+            RenderEntity_OnTile(data->dropshadow, &lvlData, renderer, &data->camera,
+                x_animated, y_animated, data->screenW, data->screenH, 1, 0.4f);
+
             if (entity.id == ID::PLAYER) {
-                RenderSprite_Grid(data->player, &lvlData, renderer, &data->camera,  x_animated, y_animated, data->screenW, data->screenH);
+                bool flip = entity.facing == Direction::LEFT;
+                RenderEntity_OnTile(data->player, &lvlData, renderer, &data->camera,
+                    x_animated, y_animated, data->screenW, data->screenH, 1, 1, flip);
             }
             else {
                 SDL_FRect srcRect = GetTilesetSrcRect(static_cast<int>(entity.id), TILESET_FIRSTGID, TILESET_COLUMNS, TILESET_TILE_PX);
-                RenderSprite_Grid(data->tileset, &lvlData, renderer, &data->camera, x_animated, y_animated, srcRect, data->screenW, data->screenH);
+                RenderEntity_OnTile(data->tileset, &lvlData, renderer, &data->camera,
+                    x_animated, y_animated, srcRect, data->screenW, data->screenH);
             }
         }
     }
 }
-
 void RenderDecorations(GameData* gameData, SDL_Renderer* renderer) {
     LevelData lvl = gameData->levels[gameData->currentLevel];
     for (int x = 0; x < lvl.w; x++) {
