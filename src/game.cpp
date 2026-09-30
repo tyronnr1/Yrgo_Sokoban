@@ -18,8 +18,12 @@
 using namespace Sokoban;
 
 
-bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDir, int yDir, int timestamp)
+bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDir, int yDir, int timestamp, int strength)
 {
+    if (strength < 0) {
+        return false;
+    }
+
     int test_x = mover->x + xDir;
     int test_y = mover->y + yDir;
 
@@ -30,27 +34,27 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
     bool hasWalkThrough = false;
 
     for (int i = 0; i < count; i++) {
-        if (stack[i]->HasBehaviour(CAN_MOVE)) {
+        if (HasBehaviour(stack[i], CAN_MOVE)) {
             blocker = stack[i];
         }
-        else if (stack[i]->HasBehaviour(CAN_WALK_THROUGH)) {
+        else if (HasBehaviour(stack[i], CAN_WALK_THROUGH)) {
             hasWalkThrough = true;
         }
     }
 
     if (blocker != nullptr) {
 
-        if ((blocker->HasBehaviour(IS_HEAVY) && !mover->HasBehaviour(IS_PLAYER)) || mover->HasBehaviour(IS_HEAVY)) {
+        if ((HasBehaviour(blocker, IS_HEAVY) && !HasBehaviour(mover, IS_PLAYER)) || HasBehaviour(mover, IS_HEAVY)) {
             return false;
         }
 
-        if (TryMove(blocker, level, cmd_buffer, xDir, yDir, timestamp)) {
+        if (TryMove(blocker, level, cmd_buffer, xDir, yDir, cmd_buffer->command_timestamp, --strength)) {
             MoveCommand mv;
             mv.type = CMD_TYPE::MOVE;
             mv.entity = mover;
             mv.xDir = xDir;
             mv.yDir = yDir;
-            Push(cmd_buffer, mv, timestamp);
+            Push(cmd_buffer, mv);
             return true;
         }
         return false;
@@ -75,7 +79,7 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
             mv.entity = mover;
             mv.xDir = xDir;
             mv.yDir = yDir;
-            Push(cmd_buffer, mv, timestamp);
+            Push(cmd_buffer, mv);
             return true;
         }
         return false;
@@ -87,7 +91,7 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
         mv.entity = mover;
         mv.xDir = xDir;
         mv.yDir = yDir;
-        Push(cmd_buffer, mv, timestamp);
+        Push(cmd_buffer, mv);
         return true;
     }
 
@@ -149,7 +153,7 @@ extern "C"
         if (KeyPressed(&data->input, SDL_SCANCODE_SPACE)){
             for (int i = 0; i < data->GetCurrentLevel()->entityCount; i++) {
                 Entity* entity = &data->GetCurrentLevel()->entityBuffer[i];
-                if (entity->HasBehaviour(CAN_MOVE) && entity->HasBehaviour(RESPOND_TO_INPUT)) {
+                if (HasBehaviour(entity, CAN_MOVE) && HasBehaviour(entity, RESPOND_TO_INPUT)) {
                     uint8_t cellID = data->GetCurrentLevel()->GetCellID(entity->x, entity->y);
                     if (cellID == (uint8_t)ID::COMMAND_PANEL) {
                         data->hackUiOpen = !data->hackUiOpen;
@@ -196,7 +200,7 @@ extern "C"
         bool are_entities_moving = false;
         for (int i = 0; i < data->GetCurrentLevel()->entityCount; i++) {
             Entity* entity = &data->GetCurrentLevel()->entityBuffer[i];
-            if (entity->HasBehaviour(CAN_MOVE) && IsMoving(entity)) {
+            if (HasBehaviour(entity, CAN_MOVE) && IsMoving(entity)) {
                 entity->progress_01 += MOVE_SPEED * dt;
                 if (entity->progress_01 >= 1) {
                     entity->progress_01 = 0;
@@ -213,24 +217,27 @@ extern "C"
             if (data->input_buffer_read_count == data->input_buffer_write_count) {
                 return;
             }
-            data->command_timestamp += 1;
+            data->commandBuffer->command_timestamp += 1; // was: data->command_timestamp += 1;
             for (int i = 0; i < data->GetCurrentLevel()->entityCount; i++) {
                 Entity* entity = &data->GetCurrentLevel()->entityBuffer[i];
-                if (entity->HasBehaviour((Behaviour)(RESPOND_TO_INPUT | CAN_MOVE))) {
-                    int xDir = data->input_buffer[data->input_buffer_read_count %  data->input_buffer_capacity].x;
+                if (HasBehaviour(entity, (Behaviour)(RESPOND_TO_INPUT | CAN_MOVE))) {
+                    int xDir = data->input_buffer[data->input_buffer_read_count % data->input_buffer_capacity].x;
                     int yDir = data->input_buffer[data->input_buffer_read_count % data->input_buffer_capacity].y;
-                    TryMove(entity, data->GetCurrentLevel(), data->commandBuffer, xDir, yDir, data->command_timestamp);
+
+                    Direction new_facing = DirectionFromXY(xDir, yDir);
+                    if (new_facing != entity->facing) {
+                        RotateCommand rotate(entity, entity->facing, new_facing);
+                        Push(data->commandBuffer, rotate); // no timestamp param
+                    }
+
+                    TryMove(entity, data->GetCurrentLevel(), data->commandBuffer, xDir, yDir, data->commandBuffer->command_timestamp, entity->strength); // no timestamp param
                 }
             }
-  
-
-
             data->input_buffer_read_count++;
         }
 
     }
     
-
     void Draw(GameData* data, SDL_Renderer* renderer)
     {
         DEV::PreDraw(data->imGui_context);
@@ -255,7 +262,6 @@ extern "C"
         // 5. Present (must be last)
         SDL_RenderPresent(renderer);
     }
-
 
     void OnQuit(SDL_Renderer* renderer)
     {

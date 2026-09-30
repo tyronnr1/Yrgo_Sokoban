@@ -43,7 +43,7 @@ struct LevelData{
 	}
 
 };
-
+Entity* RaycastFirstEntity(int x_origin, int y_origin, Direction direction, LevelData* level, bool ignore_walls = false);
 void CreateLevel(Arena* arena, LevelData* level, const char* level_name);
 void CreateEntities(LevelData* lvl_data, Arena* arena);
 void CreateDecorations(Arena* arena, LevelData* level, const char* level_name);

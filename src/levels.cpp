@@ -64,7 +64,7 @@ void CreateEntities(LevelData* lvl_data, Arena* arena){
 			int y = i / lvl_data->w;
 
 			lvl_data->entityBuffer[index].id = (ID)entity_id;
-			lvl_data->entityBuffer[index].InitializeBaseBehaviour();
+			InitializeBaseBehaviour(&lvl_data->entityBuffer[index]);
 			lvl_data->entityBuffer[index].x = x;
 			lvl_data->entityBuffer[index].y = y;
 			lvl_data->entityBuffer[index].x_prev = x;
@@ -94,3 +94,32 @@ void CreateDecorations(Arena* arena, LevelData* level, const char* level_name) {
 	}
 }
 
+Entity* RaycastFirstEntity(int x_origin, int y_origin, Direction direction, LevelData* level, bool ignore_walls) {
+	int dx = 0, dy = 0;
+	switch (direction) {
+	case Direction::RIGHT: dx = 1;  dy = 0;  break;
+	case Direction::LEFT:  dx = -1; dy = 0;  break;
+	case Direction::UP:    dx = 0;  dy = -1; break;
+	case Direction::DOWN:  dx = 0;  dy = 1;  break;
+	}
+
+	int x_search = x_origin + dx;
+	int y_search = y_origin + dy;
+
+	while (x_search >= 0 && x_search < level->w && y_search >= 0 && y_search < level->h) {
+		ID cellID = (ID)level->GetCellID(x_search, y_search);
+		if (cellID == ID::WALL && !ignore_walls) {
+			break;
+		}
+
+		Entity* entity_search = level->GetEntity(x_search, y_search);
+		if (entity_search != nullptr) {
+			return entity_search;
+		}
+
+		x_search += dx;
+		y_search += dy;
+	}
+
+	return nullptr;
+}

@@ -52,8 +52,6 @@ namespace Sokoban
         const float* dt = nullptr;
         ImGuiContext* imGui_context = nullptr;
 
-        uint32_t command_timestamp;
-
         Position* input_buffer;
         int input_buffer_capacity;
         int input_buffer_write_count;
