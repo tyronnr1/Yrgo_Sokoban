@@ -12,3 +12,5 @@ extern "C"
     __declspec(dllexport) void Draw(Sokoban::GameData* data, SDL_Renderer* renderer);
     __declspec(dllexport) void OnQuit(SDL_Renderer* renderer);
 }
+
+void ChangeScene(Sokoban::GameData* data, Sokoban::SCENE_TYPES new_scene);

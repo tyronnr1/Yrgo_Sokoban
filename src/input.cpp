@@ -100,3 +100,12 @@ void UpdateMouse(Input* input, float dt) {
 Vector GetMousePosition(const Input* input) {
 	return { input->mouse_x, input->mouse_y};
 }
+
+bool AnyKeyPressed(const Input* input) {
+	for (int i = 0; i < SDL_SCANCODE_COUNT; i++) {
+		if (KeyPressed(input, (SDL_Scancode)i)) {
+			return true;
+		}
+	}
+	return false;
+}

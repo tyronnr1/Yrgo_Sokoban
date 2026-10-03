@@ -61,3 +61,13 @@ void RenderEntity_OnTile(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, 
     y -= (srcRect.h / 2.0f) * UPSCALE_FACTOR * scale;
     RenderSprite_World(sprite, renderer, camera, x, y, srcRect, scale, alpha, flipped);
 }
+void RenderSprite_Fullscreen(Image* sprite, SDL_Renderer* renderer, int screenW, int screenH) {
+    SDL_FRect dstRect;
+    dstRect.x = 0;
+    dstRect.y = 0;
+    dstRect.w = (float)screenW;
+    dstRect.h = (float)screenH;
+
+    SDL_SetTextureScaleMode(sprite->texture, SDL_SCALEMODE_LINEAR); // smooth stretch, not pixel-art nearest
+    SDL_RenderTexture(renderer, sprite->texture, NULL, &dstRect);
+}

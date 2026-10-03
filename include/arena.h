@@ -17,3 +17,6 @@ namespace Memory
     Arena* CreateSubArena(Arena* parent_arena, size_t size);
 
 }
+
+#define ALLOC(arena, type) (type*)Memory::Allocate((arena), sizeof(type))
+#define ALLOC_ARRAY(arena, type, count) (type*)Memory::Allocate((arena), sizeof(type) * (count))

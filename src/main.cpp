@@ -154,6 +154,8 @@ void RetrieveGameState(Memory::Arena* arena)
 void RunSokoban()
 {   
    
+
+
     void* game_memory = AllocateGameMemory();
 
     Memory::Arena* arena_main = new Memory::Arena();
@@ -173,20 +175,21 @@ void RunSokoban()
     gameData->arena_images = Memory::CreateSubArena(arena_main, IMAGE_ARENA_SIZE);
     gameData->arena_levels = Memory::CreateSubArena(arena_main, MEGABYTES(3));
     gameData->arena_entities = Memory::CreateSubArena(arena_main, MEGABYTES(1));   
-    
-    gameData->input_buffer_capacity = 2;
-    size_t RING_BUFFER_SIZE = sizeof(GameData::Position) * gameData->input_buffer_capacity;
-    gameData->input_buffer = (GameData::Position*)Memory::Allocate(gameData->arena_levels, RING_BUFFER_SIZE);
+    gameData->arena_scratch = Memory::CreateSubArena(arena_main, KILOBYTES(256));
 
-    gameData->levelCount = 3;
-    gameData->levels = (LevelData*)Memory::Allocate(arena_main, sizeof(LevelData) * gameData->levelCount);
+    gameData->scenes.gameplay.input_buffer_capacity = 2;
+    size_t RING_BUFFER_SIZE = sizeof(Sokoban::Position) * gameData->scenes.gameplay.input_buffer_capacity;
+    gameData->scenes.gameplay.input_buffer = (Sokoban::Position*)Memory::Allocate(gameData->arena_levels, RING_BUFFER_SIZE);
+
+    gameData->scenes.gameplay.levelCount = 3;
+    gameData->scenes.gameplay.levels = (LevelData*)Memory::Allocate(arena_main, sizeof(LevelData) * gameData->scenes.gameplay.levelCount);
 
     gameData->arena_commands = Memory::CreateSubArena(gameData->arena_levels, MEGABYTES(1));
 
-    gameData->commandBuffer = (CommandBuffer*)Memory::Allocate(arena_main, sizeof(CommandBuffer));
-    gameData->commandBuffer->capacity = 20000;
-    size_t COMMAND_SIZE = sizeof(AnyCommand) * gameData->commandBuffer->capacity;
-    gameData->commandBuffer->allCommands = (AnyCommand*)Memory::Allocate(gameData->arena_commands, COMMAND_SIZE);
+    gameData->scenes.gameplay.commandBuffer = (CommandBuffer*)Memory::Allocate(arena_main, sizeof(CommandBuffer));
+    gameData->scenes.gameplay.commandBuffer->capacity = 20000;
+    size_t COMMAND_SIZE = sizeof(AnyCommand) * gameData->scenes.gameplay.commandBuffer->capacity;
+    gameData->scenes.gameplay.commandBuffer->allCommands = (AnyCommand*)Memory::Allocate(gameData->arena_commands, COMMAND_SIZE);
 
     size_t INPUT_ARENA_SIZE = 0;
 
@@ -243,6 +246,7 @@ void RunSokoban()
 
     while (running)
     {
+        Memory::Reset(gameData->arena_scratch);
         DLL_CheckStatus(&dll);
         CalculateDeltaTime(dt);
         gameData->currentFPS = (dt > 0.0f) ? (1.0f / dt) : 0.0f;

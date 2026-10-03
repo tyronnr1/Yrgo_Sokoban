@@ -83,7 +83,7 @@ void DEV::Draw(Sokoban::GameData* data, SDL_Renderer* renderer)
     Draw_Imgui_Arena_Usage(data->arena_commands, "commands");
     Draw_Imgui_Arena_Usage(data->arena_entities, "entities");
 
-    Draw_History(data->commandBuffer, data->GetCurrentLevel());
+    Draw_History(data->scenes.gameplay.commandBuffer, data->scenes.gameplay.GetCurrentLevel());
 
     if (data->dt)
         DrawFPS(*data->dt);
@@ -92,7 +92,7 @@ void DEV::Draw(Sokoban::GameData* data, SDL_Renderer* renderer)
     
     if (data->edit_level) {
         EDITOR::DrawObjectPanel(&data->editorData, data->tileset, data->player);
-        EDITOR::DrawPreview(&data->editorData, &data->input, renderer, data->GetCurrentLevel(), &data->camera, data->tileset, data->player, data->screenW, data->screenH);
+        EDITOR::DrawPreview(&data->editorData, &data->input, renderer, data->scenes.gameplay.GetCurrentLevel(), &data->camera, data->tileset, data->player, data->screenW, data->screenH);
     }
     ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);

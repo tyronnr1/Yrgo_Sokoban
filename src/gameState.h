@@ -14,55 +14,104 @@ struct ImGuiContext;
 namespace Sokoban
 {
 
-    struct GameData
-    {
-        struct Position
-        {
-            float x;
-            float y;
-        };
-        Camera camera;
+    struct Position {
+        float x;
+        float y;
+    };
 
-        int screenW;
-        int screenH;
-        
-        float currentFPS;
+    enum class SCENE_TYPES : uint8_t {
+        NONE,
+        TITLESCREEN,
+        MAINMENU,
+        GAME,
+        CREDITS,
+    };
 
-        Image* fallback;
-        Image* player;
-        Image* tileset;
+    struct Gameplay {
+        CommandBuffer* commandBuffer = nullptr;
+        LevelData* levels = nullptr;
+        int levelCount = 0;
+        int currentLevel = 0;
 
-        Memory::Arena* arena_levels;
-        Memory::Arena* arena_entities;
-        Memory::Arena* arena_images;
-        Memory::Arena* arena_commands;
+        Position* input_buffer = nullptr;
+        int input_buffer_capacity = 0;
+        int input_buffer_write_count = 0;
+        int input_buffer_read_count = 0;
 
-        CommandBuffer* commandBuffer;
-
-        LevelData* levels;
-        int levelCount;
-        int currentLevel;
-        LevelData* GetCurrentLevel(){ 
-            return &levels[currentLevel];
-        }
-
-        Input input;
-        Memory::Arena* arena_input;
-
-        const float* dt = nullptr;
-        ImGuiContext* imGui_context = nullptr;
-
-        Position* input_buffer;
-        int input_buffer_capacity;
-        int input_buffer_write_count;
-        int input_buffer_read_count;
+        bool initialized = false;
 
         bool hackUiOpen = false;
         UIPanel hackUiPanel;
 
+        LevelData* GetCurrentLevel() {
+            return &levels[currentLevel];
+        }
+    };
+
+    struct TitleScreen {
+        
+
+    };
+
+    struct MainMenu {
+    };
+
+    struct Credits {
+    };
+
+    struct Scenes {
+        Gameplay gameplay;
+        TitleScreen titlescreen;
+        MainMenu mainMenu;
+        Credits credits;
+    };
+
+    struct Transition {
+        enum States {
+            Inactive,
+            FadeTo,
+            FadeFrom
+        };
+        States state = Inactive;
+        float fade_time_elapsed = 0.0f;
+        float fade_time_duration = 1.0f;
+    };
+
+    struct GameData
+    {
+
+
+        SCENE_TYPES scene_current = SCENE_TYPES::NONE;
+        SCENE_TYPES scene_previous = SCENE_TYPES::NONE;
+        Scenes scenes;
+        Transition transition;
+
+        // --- Everything that is shared between scenes ---
+        Camera camera;
+        int screenW = 0;
+        int screenH = 0;
+        float currentFPS = 0.0f;
+
+        Image* fallback = nullptr;
+        Image* player = nullptr;
+        Image* tileset = nullptr;
+        Image* dropshadow = nullptr;
+        Image* titleScreenArt = nullptr;
+        Image* blackPixel = nullptr;
+
+        Memory::Arena* arena_levels = nullptr;
+        Memory::Arena* arena_entities = nullptr;
+        Memory::Arena* arena_images = nullptr;
+        Memory::Arena* arena_commands = nullptr;
+        Memory::Arena* arena_input = nullptr;
+        Memory::Arena* arena_scratch = nullptr;
+
+        Input input;
+        const float* dt = nullptr;
+        ImGuiContext* imGui_context = nullptr;
+
         bool edit_level = false;
         Editor editorData;
-
-        Image* dropshadow;
     };
+
 }

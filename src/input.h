@@ -41,3 +41,5 @@ bool MouseHeld(const Input* input, MouseButtons button);
 bool MouseHeld_ForTime(const Input* input, MouseButtons button, float min_length);
 void UpdateMouse(Input* input, float dt);
 Vector GetMousePosition(const Input* input);
+
+bool AnyKeyPressed(const Input* input);

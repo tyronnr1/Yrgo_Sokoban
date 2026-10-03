@@ -31,7 +31,7 @@ using namespace std;
 
         Vector mousePos = GetMousePosition(&data->input);
 
-        if (!data->hackUiOpen)
+        if (!data->scenes.gameplay.hackUiOpen)
             return;
 
         if (!panel.dragging && MousePressed(&data->input, MouseButtons::LEFT) &&

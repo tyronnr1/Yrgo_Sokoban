@@ -1,6 +1,8 @@
 #include "levelRenderer.h"
 #include "common.h" 
 #include "rendering.h"   
+#include "arena.h"
+#include <algorithm>
 
 using namespace Sokoban;
 
@@ -36,7 +38,7 @@ int GetDrawLayer(ID id) {
 }
 
 void RenderLevel(GameData* gameData, SDL_Renderer* renderer) {
-    LevelData* lvl = &gameData->levels[gameData->currentLevel];
+    LevelData* lvl = gameData->scenes.gameplay.GetCurrentLevel();
     for (int x = 0; x < lvl->w; x++) {
         for (int y = 0; y < lvl->h; y++) {
             uint8_t cellType = lvl->GetCellID(x, y);
@@ -49,38 +51,52 @@ void RenderLevel(GameData* gameData, SDL_Renderer* renderer) {
     }
 }
 
+bool IsEntityDrawOrderLess(Entity* a, Entity* b) {
+    int layerA = GetDrawLayer(a->id);
+    int layerB = GetDrawLayer(b->id);
+    if (layerA != layerB) {
+        return layerA < layerB;
+    }
+    return a->y < b->y;
+}
+
 void RenderEntities(GameData* data, SDL_Renderer* renderer) {
-    LevelData lvlData = data->levels[data->currentLevel];
+    LevelData* lvlData = data->scenes.gameplay.GetCurrentLevel();
     const int maxLayer = 2;
 
-    for (int layer = 0; layer <= maxLayer; layer++) {
-        for (int i = 0; i < lvlData.entityCount; i++) {
-            Entity entity = lvlData.entityBuffer[i];
-            if (GetDrawLayer(entity.id) != layer) {
-                continue;
-            }
+    Entity** sortedEntities = ALLOC_ARRAY(data->arena_scratch, Entity*, lvlData->entityCount);
+    for (int i = 0; i < lvlData->entityCount; i++) {
+        sortedEntities[i] = &lvlData->entityBuffer[i];
+    }
+    std::sort(sortedEntities, sortedEntities + lvlData->entityCount, IsEntityDrawOrderLess);
 
-            float x_animated = entity.x_prev + (entity.x - entity.x_prev) * entity.progress_01;
-            float y_animated = entity.y_prev + (entity.y - entity.y_prev) * entity.progress_01;
+    for (int i = 0; i < lvlData->entityCount; i++) {
+        Entity* entity = sortedEntities[i];
+        if (entity->id == ID::NONE) {
+            continue;
+        }
 
-            RenderEntity_OnTile(data->dropshadow, &lvlData, renderer, &data->camera,
-                x_animated, y_animated, data->screenW, data->screenH, 1, 0.4f);
+        float x_animated = entity->x_prev + (entity->x - entity->x_prev) * entity->progress_01;
+        float y_animated = entity->y_prev + (entity->y - entity->y_prev) * entity->progress_01;
 
-            if (entity.id == ID::PLAYER) {
-                bool flip = entity.facing == Direction::LEFT;
-                RenderEntity_OnTile(data->player, &lvlData, renderer, &data->camera,
-                    x_animated, y_animated, data->screenW, data->screenH, 1, 1, flip);
-            }
-            else {
-                SDL_FRect srcRect = GetTilesetSrcRect(static_cast<int>(entity.id), TILESET_FIRSTGID, TILESET_COLUMNS, TILESET_TILE_PX);
-                RenderEntity_OnTile(data->tileset, &lvlData, renderer, &data->camera,
-                    x_animated, y_animated, srcRect, data->screenW, data->screenH);
-            }
+        RenderEntity_OnTile(data->dropshadow, lvlData, renderer, &data->camera,
+            x_animated, y_animated + 0.15f, data->screenW, data->screenH, 0.6f, 0.4f);
+
+        if (entity->id == ID::PLAYER) {
+            bool flip = entity->facing == Direction::LEFT;
+            RenderEntity_OnTile(data->player, lvlData, renderer, &data->camera,
+                x_animated, y_animated, data->screenW, data->screenH, 1, 1, flip);
+        }
+        else {
+            SDL_FRect srcRect = GetTilesetSrcRect(static_cast<int>(entity->id), TILESET_FIRSTGID, TILESET_COLUMNS, TILESET_TILE_PX);
+            RenderEntity_OnTile(data->tileset, lvlData, renderer, &data->camera,
+                x_animated, y_animated, srcRect, data->screenW, data->screenH);
         }
     }
 }
+
 void RenderDecorations(GameData* gameData, SDL_Renderer* renderer) {
-    LevelData* lvl = &gameData->levels[gameData->currentLevel];
+    LevelData* lvl = gameData->scenes.gameplay.GetCurrentLevel();
     for (int x = 0; x < lvl->w; x++) {
         for (int y = 0; y < lvl->h; y++) {
             uint8_t cellType = lvl->GetDecorationID(x, y);
