@@ -16,10 +16,11 @@
 #include "input.h"
 #include "leveleditor.h"
 #include "rendering.h"
+#include "tilesetLibrary.h"
 
 using namespace Sokoban;
 
-bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDir, int yDir, int strength)
+bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, uint32_t* tileFlags, int xDir, int yDir, int strength)
 {
     if (strength < 0) {
         return false;
@@ -48,7 +49,7 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
             return false;
         }
 
-        if (TryMove(blocker, level, cmd_buffer, xDir, yDir, --strength)) {
+        if (TryMove(blocker, level, cmd_buffer, tileFlags, xDir, yDir, --strength)) {
             MoveCommand mv;
             mv.type = CMD_TYPE::MOVE;
             mv.entity = mover;
@@ -63,18 +64,8 @@ bool TryMove(Entity* mover, LevelData* level, CommandBuffer* cmd_buffer, int xDi
 
     if (count == 0) {
         uint8_t stepInto_tile_id = level->GetCellID(test_x, test_y);
-        if (
-            stepInto_tile_id == (uint8_t)ID::GRASS ||
-            stepInto_tile_id == (uint8_t)ID::GRASS_SHADOW ||
-            stepInto_tile_id == (uint8_t)ID::COMMAND_PANEL ||
-            stepInto_tile_id == (uint8_t)ID::EXIT ||
-            stepInto_tile_id == (uint8_t)ID::YELLOW_BUTTON ||
-            stepInto_tile_id == (uint8_t)ID::YELLOW_BUTTON_DOWN ||
-            stepInto_tile_id == (uint8_t)ID::RED_BUTTON ||
-            stepInto_tile_id == (uint8_t)ID::RED_BUTTON_DOWN ||
-            stepInto_tile_id == (uint8_t)ID::SPIKE ||
-            stepInto_tile_id == (uint8_t)ID::SPIKE_DOWN
-            ) {
+        int local_id = stepInto_tile_id - TILESET_FIRSTGID;
+        if (TileHasFlag(tileFlags, local_id, TILE_WALKABLE)) {
             MoveCommand mv;
             mv.type = CMD_TYPE::MOVE;
             mv.entity = mover;
@@ -175,7 +166,8 @@ void UpdateGame(GameData* data, Gameplay* gameplay, Input* input, const float dt
             Entity* entity = &gameplay->GetCurrentLevel()->entityBuffer[i];
             if (HasBehaviour(entity, CAN_MOVE) && HasBehaviour(entity, RESPOND_TO_INPUT)) {
                 uint8_t cellID = gameplay->GetCurrentLevel()->GetCellID(entity->x, entity->y);
-                if (cellID == (uint8_t)ID::COMMAND_PANEL) {
+                int local_id = cellID - TILESET_FIRSTGID;
+                if (TileHasFlag(data->tileFlags, local_id, TILE_IS_COMMAND_PANEL)) {
                     gameplay->hackUiOpen = !gameplay->hackUiOpen;
                     if (gameplay->hackUiOpen) {
                         AddBehaviour(entity, IS_HACKING);
@@ -250,7 +242,7 @@ void UpdateGame(GameData* data, Gameplay* gameplay, Input* input, const float dt
                     Push(gameplay->commandBuffer, rotate, gameplay->GetCurrentLevel());
                 }
 
-                TryMove(entity, gameplay->GetCurrentLevel(), gameplay->commandBuffer, xDir, yDir, entity->strength);
+                TryMove(entity, gameplay->GetCurrentLevel(), gameplay->commandBuffer, data->tileFlags, xDir, yDir, entity->strength);
             }
         }
         gameplay->input_buffer_read_count++;
@@ -303,6 +295,7 @@ extern "C"
     {
         DEV::Initialize(window, renderer);
         AssetManagement::LoadAllSprites(data, renderer);
+        AssetManagement::LoadTileProperties(&data->tileFlags, &data->tileFlagsCount, data->arena_images, "assets/tilesets/tileset.tsj");
         data->imGui_context = ImGui::GetCurrentContext();
 
         InitializeGame(&data->scenes.gameplay, data->arena_levels, data->arena_entities);

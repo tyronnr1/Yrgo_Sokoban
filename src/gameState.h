@@ -112,6 +112,9 @@ namespace Sokoban
 
         bool edit_level = false;
         Editor editorData;
+
+        uint32_t* tileFlags = nullptr;
+        int tileFlagsCount = 0;
     };
 
 }
