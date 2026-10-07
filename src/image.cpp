@@ -52,4 +52,5 @@ void AssetManagement::LoadAllSprites(Sokoban::GameData* data, SDL_Renderer* rend
     data->player = LoadSprite(data->arena_images, renderer, "player.png");
     data->dropshadow = LoadSprite(data->arena_images, renderer, "drop_shadow.png");
     data->titleScreenArt = LoadSprite(data->arena_images, renderer, "titleScreenArt.png");
+    data->selectionMarker = LoadSprite(data->arena_images, renderer, "selection_marker.png");
 }

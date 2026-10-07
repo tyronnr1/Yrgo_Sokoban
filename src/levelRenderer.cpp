@@ -86,6 +86,15 @@ void RenderEntities(GameData* data, SDL_Renderer* renderer) {
             bool flip = entity->facing == Direction::LEFT;
             RenderEntity_OnTile(data->player, lvlData, renderer, &data->camera,
                 x_animated, y_animated, data->screenW, data->screenH, 1, 1, flip);
+
+            Gameplay* gameplay = &data->scenes.gameplay;
+            if (gameplay->activePlayerBuffer != nullptr) {
+                Entity* active = gameplay->activePlayerBuffer[gameplay->activePlayerIndex];
+                if (active == entity) {
+                    RenderEntity_OnTile(data->selectionMarker, lvlData, renderer, &data->camera,
+                        x_animated, y_animated, data->screenW, data->screenH);
+                }
+            }
         }
         else {
             SDL_FRect srcRect = GetTilesetSrcRect(static_cast<int>(entity->id), TILESET_FIRSTGID, TILESET_COLUMNS, TILESET_TILE_PX);

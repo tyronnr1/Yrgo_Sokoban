@@ -68,7 +68,7 @@ struct Entity{
 	int x_prev;
 	int y_prev;
 	float progress_01;
-
+	bool active;
 
 };
 

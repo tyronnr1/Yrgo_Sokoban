@@ -46,6 +46,9 @@ namespace Sokoban
         LevelData* GetCurrentLevel() {
             return &levels[currentLevel];
         }
+
+        int activePlayerIndex;
+        Entity** activePlayerBuffer;
     };
 
     struct TitleScreen {
@@ -77,6 +80,12 @@ namespace Sokoban
         float fade_time_duration = 1.0f;
     };
 
+    struct EditorData {
+        float* fps_buffer;
+        int fps_buffer_count;
+        int fps_buffer_index;
+    };
+
     struct GameData
     {
 
@@ -98,6 +107,7 @@ namespace Sokoban
         Image* dropshadow = nullptr;
         Image* titleScreenArt = nullptr;
         Image* blackPixel = nullptr;
+        Image* selectionMarker = nullptr;
 
         Memory::Arena* arena_levels = nullptr;
         Memory::Arena* arena_entities = nullptr;
@@ -107,12 +117,13 @@ namespace Sokoban
         Memory::Arena* arena_scratch = nullptr;
 
         Input input;
-        const float* dt = nullptr;
+        float* dt = nullptr;
+        float* dt_scaler = nullptr;
         ImGuiContext* imGui_context = nullptr;
 
         bool edit_level = false;
         Editor editorData;
-
+		EditorData editor_data;
         uint32_t* tileFlags = nullptr;
         int tileFlagsCount = 0;
     };

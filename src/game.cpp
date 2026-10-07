@@ -150,7 +150,35 @@ void UpdateTitlescreen(TitleScreen* titlescreen, const float dt) {
     // nothing yet — add menu/animation logic here later
 }
 
-void UpdateGame(GameData* data, Gameplay* gameplay, Input* input, const float dt) {
+void UpdateGame(GameData *data, Gameplay* gameplay, Input* input, Arena* arena_scratch, const float dt) 
+{
+    int player_count = 0;
+    for (int i = 0; i < gameplay->GetCurrentLevel()->entityCount; i++) {
+        if (gameplay->GetCurrentLevel()->entityBuffer[i].active == false) {
+            continue;
+        }
+        if (HasBehaviour(&gameplay->GetCurrentLevel()->entityBuffer[i], (Behaviour)(IS_PLAYER))) {
+            player_count++;
+        }
+    }
+    int index = 0;
+    gameplay->activePlayerBuffer = ALLOC_ARRAY(data->arena_scratch, Entity*, player_count);
+    for (int i = 0; i < gameplay->GetCurrentLevel()->entityCount; i++) {
+        if (gameplay->GetCurrentLevel()->entityBuffer[i].active == false) {
+            continue;
+        }
+        if (HasBehaviour(&gameplay->GetCurrentLevel()->entityBuffer[i], (Behaviour)(IS_PLAYER))) {
+            gameplay->activePlayerBuffer[index++] = &gameplay->GetCurrentLevel()->entityBuffer[i];
+        }
+    }
+
+    if (KeyPressed(input, SDL_SCANCODE_X) && player_count > 0) {
+        SwapActiveEntityCommand swap(&gameplay->activePlayerIndex, player_count);
+        Push(gameplay->commandBuffer, swap, gameplay->GetCurrentLevel());
+        gameplay->commandBuffer->command_timestamp += 1;
+    }
+
+
     if (KeyPressed(input, SDL_SCANCODE_Z) || KeyHeld_ForTime(input, SDL_SCANCODE_Z, UNDO_REPEAT_TIME)) {
         ResetKeyHeldTime(input, SDL_SCANCODE_Z);
         if (KeyHeld(input, SDL_SCANCODE_LSHIFT)) {
@@ -225,26 +253,29 @@ void UpdateGame(GameData* data, Gameplay* gameplay, Input* input, const float dt
             return;
         }
         gameplay->commandBuffer->command_timestamp += 1;
+
         for (int i = 0; i < gameplay->GetCurrentLevel()->entityCount; i++) {
             Entity* entity = &gameplay->GetCurrentLevel()->entityBuffer[i];
-
             if (HasBehaviour(entity, IS_PUSHING)) {
                 RemoveBehaviour(entity, IS_PUSHING);
             }
-
-            if (HasBehaviour(entity, (Behaviour)(RESPOND_TO_INPUT | CAN_MOVE))) {
-                int xDir = gameplay->input_buffer[gameplay->input_buffer_read_count % gameplay->input_buffer_capacity].x;
-                int yDir = gameplay->input_buffer[gameplay->input_buffer_read_count % gameplay->input_buffer_capacity].y;
-
-                Direction new_facing = DirectionFromXY(xDir, yDir);
-                if (new_facing != entity->facing) {
-                    RotateCommand rotate(entity, entity->facing, new_facing);
-                    Push(gameplay->commandBuffer, rotate, gameplay->GetCurrentLevel());
-                }
-
-                TryMove(entity, gameplay->GetCurrentLevel(), gameplay->commandBuffer, data->tileFlags, xDir, yDir, entity->strength);
-            }
         }
+
+        if (player_count > 0) {
+            Entity* active = gameplay->activePlayerBuffer[gameplay->activePlayerIndex];
+
+            int xDir = gameplay->input_buffer[gameplay->input_buffer_read_count % gameplay->input_buffer_capacity].x;
+            int yDir = gameplay->input_buffer[gameplay->input_buffer_read_count % gameplay->input_buffer_capacity].y;
+
+            Direction new_facing = DirectionFromXY(xDir, yDir);
+            if (new_facing != active->facing) {
+                RotateCommand rotate(active, active->facing, new_facing);
+                Push(gameplay->commandBuffer, rotate, gameplay->GetCurrentLevel());
+            }
+
+            TryMove(active, gameplay->GetCurrentLevel(), gameplay->commandBuffer, data->tileFlags, xDir, yDir, active->strength);
+        }
+
         gameplay->input_buffer_read_count++;
     }
 }
@@ -289,6 +320,7 @@ void RenderFullscreenFade(SDL_Renderer* renderer, int screenW, int screenH, floa
     SDL_RenderFillRect(renderer, &full);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 }
+
 extern "C"
 {
     void Initialize(GameData* data, SDL_Window* window, SDL_Renderer* renderer)
@@ -358,7 +390,7 @@ extern "C"
         case SCENE_TYPES::MAINMENU:
             break;
         case SCENE_TYPES::GAME:
-            UpdateGame(data, gameplay, &data->input, dt);
+            UpdateGame(data, gameplay, &data->input, data->arena_scratch, dt);
             break;
         case SCENE_TYPES::CREDITS:
             break;

@@ -70,6 +70,7 @@ void CreateEntities(LevelData* lvl_data, Arena* arena){
 			lvl_data->entityBuffer[index].x_prev = x;
 			lvl_data->entityBuffer[index].y_prev = y;
 			lvl_data->entityBuffer[index].progress_01 = 0.0f;
+			lvl_data->entityBuffer[index].active = true;
 
 			index += 1;
 		}

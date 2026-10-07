@@ -120,11 +120,11 @@ void* AllocateGameMemory()
 Uint64 NOW = 0;
 Uint64 PREV = 0;
 
-void CalculateDeltaTime(float& dt)
-{
+void CalculateDeltaTime(float* dt, float scaler) {
     NOW = SDL_GetTicksNS();
-    dt = (float)(NOW - PREV);
-    dt = SDL_NS_TO_SECONDS(dt);
+    *dt = NOW - PREV;
+    *dt = SDL_NS_TO_SECONDS(*dt);
+    *dt *= scaler;
     PREV = NOW;
 }
 
@@ -171,6 +171,7 @@ void RunSokoban()
     );
 
     size_t IMAGE_ARENA_SIZE = sizeof(Image) * 1024;
+    
 
     gameData->arena_images = Memory::CreateSubArena(arena_main, IMAGE_ARENA_SIZE);
     gameData->arena_levels = Memory::CreateSubArena(arena_main, MEGABYTES(3));
@@ -205,6 +206,10 @@ void RunSokoban()
     gameData->input.keys_previous = (bool*)Memory::Allocate(gameData->arena_input, sizeof(bool) * SDL_SCANCODE_COUNT);
     gameData->input.keys_held_time = (float*)Memory::Allocate(gameData->arena_input, sizeof(float) * SDL_SCANCODE_COUNT);
     gameData->input.mouse_held_time = (float*)Memory::Allocate(gameData->arena_input, sizeof(float) * mouseButtonCount);
+
+
+    gameData->editor_data.fps_buffer_count = 500;
+    gameData->editor_data.fps_buffer = ALLOC_ARRAY(arena_main, float, gameData->editor_data.fps_buffer_count);
 
     MMRESULT result = timeBeginPeriod(1);
     if (result == TIMERR_NOCANDO) {
@@ -242,13 +247,16 @@ void RunSokoban()
 
     bool running = true;
     float dt;
+    float dt_scaler = 1;
     gameData->dt = &dt;
+    gameData->dt_scaler = &dt_scaler;
+
 
     while (running)
     {
         Memory::Reset(gameData->arena_scratch);
         DLL_CheckStatus(&dll);
-        CalculateDeltaTime(dt);
+        CalculateDeltaTime(gameData->dt, *gameData->dt_scaler);
         gameData->currentFPS = (dt > 0.0f) ? (1.0f / dt) : 0.0f;
         SDL_Event event;
         while (SDL_PollEvent(&event))

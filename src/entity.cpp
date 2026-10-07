@@ -19,7 +19,7 @@ void AddEntity(ID id, int x, int y, LevelData* level)
     entity.x_prev = x;
     entity.y_prev = y;
     entity.progress_01 = 0.0f;
-
+	entity.active = true;
     InitializeBaseBehaviour(&entity);
 
     level->entityCount++;

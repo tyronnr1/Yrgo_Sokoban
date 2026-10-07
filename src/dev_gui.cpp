@@ -1,4 +1,4 @@
-#include "dev_gui.h"
+﻿#include "dev_gui.h"
 
 #include "gameState.h"
 #include "command.h"
@@ -39,10 +39,14 @@ static void Draw_History(CommandBuffer* buffer, LevelData* level)
     }
 }
 
-static void DrawFPS(float dt)
-{
-    ImGui::Text("FPS: %.0f", 1.0f / dt);
+void DrawFPS(Sokoban::GameData* data) {
+    Sokoban::EditorData* editor = &data->editor_data;
+
+    editor->fps_buffer[editor->fps_buffer_index++] = 1.0 / *data->dt * *data->dt_scaler;
+    editor->fps_buffer_index %= editor->fps_buffer_count;
+    ImGui::PlotHistogram("fps", editor->fps_buffer, editor->fps_buffer_count, 0, nullptr , 0, data->currentFPS, ImVec2(-1, 35));
 }
+
 
 
 void DEV::Initialize(SDL_Window* window, SDL_Renderer* renderer)
@@ -84,10 +88,12 @@ void DEV::Draw(Sokoban::GameData* data, SDL_Renderer* renderer)
     Draw_Imgui_Arena_Usage(data->arena_entities, "entities");
 
     Draw_History(data->scenes.gameplay.commandBuffer, data->scenes.gameplay.GetCurrentLevel());
+    Draw_Imgui_Arena_Usage(data->arena_scratch, "scratch");
 
     if (data->dt)
-        DrawFPS(*data->dt);
+    DrawFPS(data);
 
+    ImGui::SliderFloat("deltaTimeScaler", data->dt_scaler, 0.1, 3);
     ImGui::End();
     
     if (data->edit_level) {

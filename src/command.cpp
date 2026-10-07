@@ -3,47 +3,52 @@
 
 void Execute(AnyCommand cmd, LevelData* level, bool from_redo = false) {
     switch (cmd.command.type) {
-    case CMD_TYPE::NONE:
-        break;
-    case CMD_TYPE::MOVE: {
-        MoveCommand mv = cmd.move;
-        mv.entity->x_prev = mv.entity->x;
-        mv.entity->y_prev = mv.entity->y;
-        mv.entity->x += mv.xDir;
-        mv.entity->y += mv.yDir;
-        if (from_redo) {
-            mv.entity->progress_01 = 1;
-        }
-        break;
-    }
-    case CMD_TYPE::ROTATE: {
-        RotateCommand rotate = cmd.rotate;
-        if (!HasBehaviour(rotate.entity, CAN_ROTATE)) {
+        case CMD_TYPE::NONE:
+            break;
+        case CMD_TYPE::MOVE: {
+            MoveCommand mv = cmd.move;
+            mv.entity->x_prev = mv.entity->x;
+            mv.entity->y_prev = mv.entity->y;
+            mv.entity->x += mv.xDir;
+            mv.entity->y += mv.yDir;
+            if (from_redo) {
+                mv.entity->progress_01 = 1;
+            }
             break;
         }
-        rotate.entity->facing = rotate.to;
-        break;
-    }
-    case CMD_TYPE::MODIFY_BEHAVIOUR: {
-        ModifyBehaviourCommand modify = cmd.modify;
-        if (modify.mode == ModifyBehaviourCommand::ADD) {
-            AddBehaviour(modify.entity, modify.flag);
+        case CMD_TYPE::ROTATE: {
+            RotateCommand rotate = cmd.rotate;
+            if (!HasBehaviour(rotate.entity, CAN_ROTATE)) {
+                break;
+            }
+            rotate.entity->facing = rotate.to;
+            break;
         }
-        else {
-            RemoveBehaviour(modify.entity, modify.flag);
+        case CMD_TYPE::MODIFY_BEHAVIOUR: {
+            ModifyBehaviourCommand modify = cmd.modify;
+            if (modify.mode == ModifyBehaviourCommand::ADD) {
+                AddBehaviour(modify.entity, modify.flag);
+            }
+            else {
+                RemoveBehaviour(modify.entity, modify.flag);
+            }
+            break;
         }
-        break;
-    }
-    case CMD_TYPE::ADD: { // new
-        AddCommand* add = &cmd.add;
-        AddEntity(add->id, add->x, add->y, level);
-        break;
-    }
-    case CMD_TYPE::REMOVE: { // new
-        RemoveCommand* remove = &cmd.remove;
-        RemoveEntity(remove->x, remove->y, level);
-        break;
-    }
+        case CMD_TYPE::ADD: {
+            AddCommand* add = &cmd.add;
+            AddEntity(add->id, add->x, add->y, level);
+            break;
+        }
+        case CMD_TYPE::REMOVE: {
+            RemoveCommand* remove = &cmd.remove;
+            RemoveEntity(remove->x, remove->y, level);
+            break;
+        }
+        case CMD_TYPE::SWAP_ACTIVE: {
+            SwapActiveEntityCommand* swap = &cmd.swap;
+            *swap->value_to_change = swap->index_current;
+            break;
+        }
     }
 }
 
@@ -102,6 +107,12 @@ void Undo(CommandBuffer* buffer, LevelData* level) {
         SetBehaviour(entity, remove->storedBehaviour);
         break;
     }
+    case CMD_TYPE::SWAP_ACTIVE: {
+        SwapActiveEntityCommand* swap = &cmd.swap;
+        *swap->value_to_change = swap->index_previous;
+        break;
+    }
+
     }
     if (buffer->index > 0) {
         if (buffer->allCommands[buffer->index - 1].command.timestamp == timestamp) {

@@ -11,7 +11,8 @@ enum class CMD_TYPE : uint8_t {
     ROTATE = 2,
     MODIFY_BEHAVIOUR = 3,
     ADD = 4,
-    REMOVE = 5
+    REMOVE = 5,
+	SWAP_ACTIVE = 6
 };
 
 struct Command {
@@ -43,6 +44,19 @@ struct RotateCommand : Command {
         this->from = from;
         this->to = to;
         type = CMD_TYPE::ROTATE;
+    }
+};
+
+struct SwapActiveEntityCommand : Command {
+    int index_current;
+    int index_previous;
+    int* value_to_change;
+    SwapActiveEntityCommand(int* activeEntityIndex, int limit) {
+        index_previous = *activeEntityIndex;
+        index_current = *activeEntityIndex + 1;
+        value_to_change = activeEntityIndex;
+        index_current %= limit;
+        type = CMD_TYPE::SWAP_ACTIVE;
     }
 };
 
@@ -107,6 +121,7 @@ union AnyCommand {
     ModifyBehaviourCommand modify;
     AddCommand add;
     RemoveCommand remove; 
+	SwapActiveEntityCommand swap;
     //CompileCommand compile;
 
     AnyCommand(MoveCommand mv) { move = mv; }
@@ -114,6 +129,7 @@ union AnyCommand {
     AnyCommand(ModifyBehaviourCommand mc) { modify = mc; }
     AnyCommand(AddCommand ac) { add = ac; }
     AnyCommand(RemoveCommand rc) { remove = rc; }
+    AnyCommand(SwapActiveEntityCommand sc) { swap = sc; }
     //   AnyCommand(CompileCommand cmd) { compile = cmd; }
 };
 
