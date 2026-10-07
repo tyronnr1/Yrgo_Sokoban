@@ -17,6 +17,7 @@
 #include "leveleditor.h"
 #include "rendering.h"
 #include "tilesetLibrary.h"
+#include "mainmenu.h"
 
 using namespace Sokoban;
 
@@ -297,6 +298,8 @@ void DrawScene(GameData* data, SCENE_TYPES scene, SDL_Renderer* renderer) {
         break;
     }
     case SCENE_TYPES::MAINMENU:
+        DrawMenu(data, &data->scenes.mainMenu, renderer);
+		break;
     case SCENE_TYPES::GAME:
         RenderLevel(data, renderer);
         RenderEntities(data, renderer);
@@ -331,6 +334,7 @@ extern "C"
         data->imGui_context = ImGui::GetCurrentContext();
 
         InitializeGame(&data->scenes.gameplay, data->arena_levels, data->arena_entities);
+        InitializeMenu(&data->scenes.mainMenu, data->fallback, data->arena_main, data->screenW, data->screenH); // new
         ChangeScene(data, SCENE_TYPES::TITLESCREEN);
     }
 
@@ -383,11 +387,12 @@ extern "C"
             UpdateTitlescreen(titlescreen, dt);
             if (AnyKeyPressed(&data->input)) {
                 if (transition->state == Transition::FadeTo || transition->state == Transition::Inactive) {
-                    ChangeScene(data, SCENE_TYPES::GAME);
+                    ChangeScene(data, SCENE_TYPES::MAINMENU);
                 }
             }
             break;
         case SCENE_TYPES::MAINMENU:
+            UpdateMenu(data);
             break;
         case SCENE_TYPES::GAME:
             UpdateGame(data, gameplay, &data->input, data->arena_scratch, dt);

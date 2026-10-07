@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "image.h"
 #include "levels.h"
+#include "button.h"
 
 void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, float scale = 1, float alpha = 1, bool flipped = false);
 void RenderSprite_World(Image* sprite, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, float scale = 1, float alpha = 1, bool flipped = false);
@@ -14,3 +15,5 @@ void RenderEntity_OnTile(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, 
 void RenderEntity_OnTile(Image* sprite, LevelData* lvl, SDL_Renderer* renderer, const Camera* camera, float x, float y, SDL_FRect srcRect, int screenW, int screenH, float scale = 1, float alpha = 1, bool flipped = false);
 
 void RenderSprite_Fullscreen(Image* sprite, SDL_Renderer* renderer, int screenW, int screenH);
+
+void RenderButton(Button* button, bool is_selected, SDL_Renderer* renderer);

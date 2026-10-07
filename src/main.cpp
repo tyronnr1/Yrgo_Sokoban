@@ -1,6 +1,9 @@
 #include <print>
 #include <iostream>
 #include <windows.h>
+#include <timeapi.h>
+#include <fstream>
+#include <cmath>
 
 #include "SDL3/SDL_init.h"
 #include "SDL3/SDL_render.h"
@@ -9,9 +12,6 @@
 #include "arena.h"
 #include "gameState.h"
 #include "image.h"
-#include "gameState.h"
-#include <timeapi.h>
-#include <fstream>
 
 using namespace std;
 
@@ -170,9 +170,10 @@ void RunSokoban()
         sizeof(GameData)
     );
 
+
     size_t IMAGE_ARENA_SIZE = sizeof(Image) * 1024;
     
-
+    gameData->arena_main = arena_main;
     gameData->arena_images = Memory::CreateSubArena(arena_main, IMAGE_ARENA_SIZE);
     gameData->arena_levels = Memory::CreateSubArena(arena_main, MEGABYTES(3));
     gameData->arena_entities = Memory::CreateSubArena(arena_main, MEGABYTES(1));   
@@ -245,14 +246,14 @@ void RunSokoban()
 
     dll.initialize(gameData, window, renderer);
 
-    bool running = true;
+    gameData->running = true;
     float dt;
     float dt_scaler = 1;
     gameData->dt = &dt;
     gameData->dt_scaler = &dt_scaler;
 
 
-    while (running)
+    while (gameData->running)
     {
         Memory::Reset(gameData->arena_scratch);
         DLL_CheckStatus(&dll);
@@ -261,8 +262,8 @@ void RunSokoban()
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            running = dll.handleEvents(gameData, event);
-            if (running == false)
+            gameData->running = dll.handleEvents(gameData, event);
+            if (gameData->running == false)
             {
                 break;
             }
@@ -279,7 +280,19 @@ void RunSokoban()
             }
         }
         gameData->input.keys_current = SDL_GetKeyboardState(nullptr);
-        gameData->input.mouse_current = SDL_GetMouseState(&gameData->input.mouse_x,&gameData->input.mouse_y);
+
+        float* delta_x = &gameData->input.mouse_x_delta;
+        float* delta_y = &gameData->input.mouse_y_delta;
+        *delta_x = gameData->input.mouse_x;
+        *delta_y = gameData->input.mouse_y;
+        gameData->input.mouse_current = SDL_GetMouseState(&gameData->input.mouse_x, &gameData->input.mouse_y);
+        *delta_x = gameData->input.mouse_x - *delta_x;
+        *delta_y = gameData->input.mouse_y - *delta_y;
+
+        float dx = *delta_x;
+        float dy = *delta_y;
+        gameData->input.mouse_magnitude = std::sqrt(dx * dx + dy * dy);
+
         dll.update(gameData, dt);
         UpdateKeys(&gameData->input, dt);
 

@@ -16,6 +16,9 @@ struct Input {
 
 	float mouse_x;
 	float mouse_y;
+	float mouse_x_delta;
+	float mouse_y_delta;
+	double mouse_magnitude;
 };
 enum class MouseButtons {
 	LEFT = 0,

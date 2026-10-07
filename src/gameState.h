@@ -7,6 +7,8 @@
 #include "hackUi.h"
 #include "camera.h"
 #include "editor.h"
+#include "button.h"
+#include "mainmenu.h"
 
 struct Image;
 struct ImGuiContext;
@@ -57,6 +59,12 @@ namespace Sokoban
     };
 
     struct MainMenu {
+        Button* buttons = nullptr;
+        int button_count = 0;
+        int activeButtonIndex = 0;
+        Button** activeButtons = nullptr;
+        int activeButtonCount = 0;
+        bool initialized = false;
     };
 
     struct Credits {
@@ -126,6 +134,9 @@ namespace Sokoban
 		EditorData editor_data;
         uint32_t* tileFlags = nullptr;
         int tileFlagsCount = 0;
+
+        bool running = true;
+        Memory::Arena* arena_main = nullptr;
     };
 
 }

@@ -71,3 +71,12 @@ void RenderSprite_Fullscreen(Image* sprite, SDL_Renderer* renderer, int screenW,
     SDL_SetTextureScaleMode(sprite->texture, SDL_SCALEMODE_LINEAR); // smooth stretch, not pixel-art nearest
     SDL_RenderTexture(renderer, sprite->texture, NULL, &dstRect);
 }
+
+void RenderButton(Button* button, bool is_selected, SDL_Renderer* renderer) {
+    SDL_Texture* texture = button->texture;
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
+    uint8_t colorOverlay = is_selected ? 255 : 230;
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureColorMod(texture, colorOverlay, colorOverlay, colorOverlay);
+    SDL_RenderTexture(renderer, button->texture, NULL, &button->rect);
+}
